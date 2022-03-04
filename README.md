@@ -11,9 +11,4 @@ For local development using Storybook
 // Rebuild every time the program is changed and start Storybook
 npm run watch
 npm run storybook
-
-// Serve from andrewslai for E2E development
-cd <PATH>/cljs-chess
-lein run
-
 ```
