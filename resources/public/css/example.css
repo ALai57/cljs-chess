@@ -1,0 +1,19 @@
+.hover-icon {
+    transition: all 0.25s;
+}
+
+.hover-icon:hover {
+  background-color: #2FA2B7;
+}
+
+.background-red {
+    background-color: red;
+}
+
+.background-darkgrey{
+    background-color: darkgrey;
+}
+
+.background-lightgrey{
+    background-color: lightgrey;
+}

@@ -1,0 +1,39 @@
+;; shadow-cljs configuration
+{:source-paths ["src"
+                "test"]
+
+ :dependencies [;; Resolve conflicts
+                [clj-commons/secretary "1.2.4"]
+                [cljs-ajax "0.8.1"]
+
+                [day8.re-frame/http-fx "0.2.3"]
+                [hickory "0.7.1"]
+                [nubank/matcher-combinators "3.1.4" :scope "test" :exclusions [org.clojure/spec.alpha]]
+                [re-frame "1.2.0"]
+                [reagent "1.1.0"]
+                [com.taoensso/timbre "5.1.2"]
+
+                [arttuka/reagent-material-ui "5.0.0-0"]]
+
+ :builds {:app {:target :browser
+
+                :output-dir "resources/public/js/compiled/cljs-chess"
+                :asset-path "js/compiled/cljs-chess"
+
+                :modules          {:cljs-chess {:entries [cljs-chess.core]}}
+                :compiler-options {:static-fns          true
+                                   :infer-externs       :auto
+                                   :optimize-constants  true
+                                   :pretty-print        false
+                                   :optimization        :advanced
+                                   :strip-type-prefixes #{"cljs.pprint"}}
+                ;;:devtools   {:after-load app.main/reload!}}
+
+                ;; Shadow has a pre-built idea that every build has a dev and release configuration
+                :dev     {:closure-defines { cljs-chess.core/SOME_URL "http://172.17.0.1:8080/auth"} }
+                :release {:closure-defines { cljs-chess.core/SOME_URL "http://172.17.0.1:8080/auth"} }
+                }
+
+          :stories {:target     :npm-module
+                    :ns-regexp  "-stories$"
+                    :output-dir "public/js/stories"}}}
