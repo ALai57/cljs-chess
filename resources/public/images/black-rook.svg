@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="7.5406251mm"
+   height="8.3343744mm"
+   viewBox="0 0 7.5406251 8.3343744"
+   version="1.1"
+   id="svg203"
+   inkscape:version="1.1.2 (b8e25be8, 2022-02-05)"
+   sodipodi:docname="black-rook.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview205"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="0.64052329"
+     inkscape:cx="-375.47425"
+     inkscape:cy="-252.13759"
+     inkscape:window-width="1312"
+     inkscape:window-height="969"
+     inkscape:window-x="0"
+     inkscape:window-y="38"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs200" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-204.41884,-220.13184)">
+    <g
+       style="fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       transform="matrix(0.26458333,0,0,0.26458333,202.23603,217.94903)"
+       id="g168">
+      <path
+         d="M 9,39 H 36 V 36 H 9 Z"
+         style="stroke-linecap:butt"
+         id="path146" />
+      <path
+         d="M 12.5,32 14,29.5 h 17 l 1.5,2.5 z"
+         style="stroke-linecap:butt"
+         id="path148" />
+      <path
+         d="m 12,36 v -4 h 21 v 4 z"
+         style="stroke-linecap:butt"
+         id="path150" />
+      <path
+         d="m 14,29.5 v -13 h 17 v 13 z"
+         style="stroke-linecap:butt;stroke-linejoin:miter"
+         id="path152" />
+      <path
+         d="M 14,16.5 11,14 h 23 l -3,2.5 z"
+         style="stroke-linecap:butt"
+         id="path154" />
+      <path
+         d="M 11,14 V 9 h 4 v 2 h 5 V 9 h 5 v 2 h 5 V 9 h 4 v 5 z"
+         style="stroke-linecap:butt"
+         id="path156" />
+      <path
+         d="m 12,35.5 h 21 v 0"
+         style="fill:none;stroke:#ffffff;stroke-width:1;stroke-linejoin:miter"
+         id="path158" />
+      <path
+         d="M 13,31.5 H 32"
+         style="fill:none;stroke:#ffffff;stroke-width:1;stroke-linejoin:miter"
+         id="path160" />
+      <path
+         d="M 14,29.5 H 31"
+         style="fill:none;stroke:#ffffff;stroke-width:1;stroke-linejoin:miter"
+         id="path162" />
+      <path
+         d="M 14,16.5 H 31"
+         style="fill:none;stroke:#ffffff;stroke-width:1;stroke-linejoin:miter"
+         id="path164" />
+      <path
+         d="M 11,14 H 34"
+         style="fill:none;stroke:#ffffff;stroke-width:1;stroke-linejoin:miter"
+         id="path166" />
+    </g>
+  </g>
+</svg>

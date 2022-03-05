@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="10.186459mm"
+   height="9.3277426mm"
+   viewBox="0 0 10.186459 9.3277426"
+   version="1.1"
+   id="svg590"
+   inkscape:version="1.1.2 (b8e25be8, 2022-02-05)"
+   sodipodi:docname="white-queen.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview592"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="0.64052329"
+     inkscape:cx="692.40262"
+     inkscape:cy="564.38229"
+     inkscape:window-width="1312"
+     inkscape:window-height="969"
+     inkscape:window-x="0"
+     inkscape:window-y="38"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs587" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(78.207276,-4.0106766)">
+    <g
+       style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       transform="matrix(0.26458333,0,0,0.26458333,-79.067172,2.7539056)"
+       id="g253">
+      <path
+         d="m 9,13 a 2,2 0 1 1 -4,0 2,2 0 1 1 4,0 z"
+         transform="translate(-1,-1)"
+         id="path235" />
+      <path
+         d="m 9,13 a 2,2 0 1 1 -4,0 2,2 0 1 1 4,0 z"
+         transform="translate(15.5,-5.5)"
+         id="path237" />
+      <path
+         d="m 9,13 a 2,2 0 1 1 -4,0 2,2 0 1 1 4,0 z"
+         transform="translate(32,-1)"
+         id="path239" />
+      <path
+         d="m 9,13 a 2,2 0 1 1 -4,0 2,2 0 1 1 4,0 z"
+         transform="translate(7,-4.5)"
+         id="path241" />
+      <path
+         d="m 9,13 a 2,2 0 1 1 -4,0 2,2 0 1 1 4,0 z"
+         transform="translate(24,-4)"
+         id="path243" />
+      <path
+         d="m 9,26 c 8.5,-1.5 21,-1.5 27,0 L 38,14 31,25 V 11 l -5.5,13.5 -3,-15 -3,15 -5.5,-14 V 25 L 7,14 Z"
+         style="stroke-linecap:butt"
+         id="path245" />
+      <path
+         d="m 9,26 c 0,2 1.5,2 2.5,4 1,1.5 1,1 0.5,3.5 -1.5,1 -1.5,2.5 -1.5,2.5 -1.5,1.5 0.5,2.5 0.5,2.5 6.5,1 16.5,1 23,0 0,0 1.5,-1 0,-2.5 0,0 0.5,-1.5 -1,-2.5 -0.5,-2.5 -0.5,-2 0.5,-3.5 1,-2 2.5,-2 2.5,-4 -8.5,-1.5 -18.5,-1.5 -27,0 z"
+         style="stroke-linecap:butt"
+         id="path247" />
+      <path
+         d="M 11.5,30 C 15,29 30,29 33.5,30"
+         style="fill:none"
+         id="path249" />
+      <path
+         d="m 12,33.5 c 6,-1 15,-1 21,0"
+         style="fill:none"
+         id="path251" />
+    </g>
+  </g>
+</svg>
