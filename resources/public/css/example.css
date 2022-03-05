@@ -17,3 +17,12 @@
 .background-lightgrey{
     background-color: lightgrey;
 }
+
+.chess-square {
+    border: 4px solid black;
+}
+
+.board-row {
+    display: block;
+    overflow: auto;
+}
