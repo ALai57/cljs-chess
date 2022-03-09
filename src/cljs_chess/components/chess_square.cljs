@@ -8,7 +8,7 @@
 (defn chess-square
   [{:keys [dim id style piece on-click background-color]
     :or   {dim "100px"}}]
-  (infof "PIECE %s ACTIVE? %s" piece active?)
+  ;;(infof "PIECE %s ACTIVE? %s" piece active?)
   [:div.background-darkgrey.hover-icon.chess-square
    {:style    (merge {:width               dim
                       :height              dim
