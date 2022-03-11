@@ -44,4 +44,4 @@
                [cs/chess-square-dnd
                 {:id     id
                  :coords [row col]
-                 :piece  (get-in game-board [row col])}]))]))]]))
+                 :piece  (get game-board [row col])}]))]))]]))
