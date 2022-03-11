@@ -2,7 +2,7 @@
   (:require [cljs-chess.components.drag-and-drop-board :as dnd-board]
             [cljs-chess.components.chess-board-dnd :as chess-board]
             [cljs-chess.components.chess-piece :as chess-piece]
-            [cljs-chess.chess :refer :all]
+            [cljs-chess.chess :refer [BLACK-ROOK]]
             [cljs-chess.stories.helper :as helper]
             [reagent.core :as reagent]))
 

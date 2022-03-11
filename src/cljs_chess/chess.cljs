@@ -5,56 +5,56 @@
 ;; {[0 0] {:piece "rook" :owner "black"}
 ;;  [2 4] {:piece "queen" :owner "white"}}
 
-(def BLACK-ROOK {:piece :rook :owner :black})
-(def BLACK-KNIGHT {:piece :knight :owner :black})
-(def BLACK-BISHOP {:piece :bishop :owner :black})
-(def BLACK-QUEEN {:piece :queen :owner :black})
-(def BLACK-KING {:piece :king :owner :black})
-(def BLACK-PAWN {:piece :pawn :owner :black})
+(def BLACK-ROOK {:piece "rook" :owner "black"})
+(def BLACK-KNIGHT {:piece "knight" :owner "black"})
+(def BLACK-BISHOP {:piece "bishop" :owner "black"})
+(def BLACK-QUEEN {:piece "queen" :owner "black"})
+(def BLACK-KING {:piece "king" :owner "black"})
+(def BLACK-PAWN {:piece "pawn" :owner "black"})
 
-(def WHITE-ROOK {:piece :rook :owner :white})
-(def WHITE-KNIGHT {:piece :knight :owner :white})
-(def WHITE-BISHOP {:piece :bishop :owner :white})
-(def WHITE-QUEEN {:piece :queen :owner :white})
-(def WHITE-KING {:piece :king :owner :white})
-(def WHITE-PAWN {:piece :pawn :owner :white})
+(def WHITE-ROOK {:piece "rook" :owner "white"})
+(def WHITE-KNIGHT {:piece "knight" :owner "white"})
+(def WHITE-BISHOP {:piece "bishop" :owner "white"})
+(def WHITE-QUEEN {:piece "queen" :owner "white"})
+(def WHITE-KING {:piece "king" :owner "white"})
+(def WHITE-PAWN {:piece "pawn" :owner "white"})
 
 (def STARTING-CHESS-BOARD
-  {[0 0] BLACK-ROOK
-   [0 1] BLACK-KNIGHT
-   [0 2] BLACK-BISHOP
-   [0 3] BLACK-KING
-   [0 4] BLACK-QUEEN
-   [0 5] BLACK-BISHOP
-   [0 6] BLACK-KNIGHT
-   [0 7] BLACK-ROOK
+  {[0 0] (assoc BLACK-ROOK :id "1")
+   [0 1] (assoc BLACK-KNIGHT :id "1")
+   [0 2] (assoc BLACK-BISHOP :id "1")
+   [0 3] (assoc BLACK-KING :id "1")
+   [0 4] (assoc BLACK-QUEEN :id "1")
+   [0 5] (assoc BLACK-BISHOP :id "2")
+   [0 6] (assoc BLACK-KNIGHT :id "2")
+   [0 7] (assoc BLACK-ROOK :id "2")
 
-   [1 0] BLACK-PAWN
-   [1 1] BLACK-PAWN
-   [1 2] BLACK-PAWN
-   [1 3] BLACK-PAWN
-   [1 4] BLACK-PAWN
-   [1 5] BLACK-PAWN
-   [1 6] BLACK-PAWN
-   [1 7] BLACK-PAWN
+   [1 0] (assoc BLACK-PAWN :id "1")
+   [1 1] (assoc BLACK-PAWN :id "2")
+   [1 2] (assoc BLACK-PAWN :id "3")
+   [1 3] (assoc BLACK-PAWN :id "4")
+   [1 4] (assoc BLACK-PAWN :id "5")
+   [1 5] (assoc BLACK-PAWN :id "6")
+   [1 6] (assoc BLACK-PAWN :id "7")
+   [1 7] (assoc BLACK-PAWN :id "8")
 
-   [6 0] WHITE-PAWN
-   [6 1] WHITE-PAWN
-   [6 2] WHITE-PAWN
-   [6 3] WHITE-PAWN
-   [6 4] WHITE-PAWN
-   [6 5] WHITE-PAWN
-   [6 6] WHITE-PAWN
-   [6 7] WHITE-PAWN
+   [6 0] (assoc WHITE-PAWN :id "1")
+   [6 1] (assoc WHITE-PAWN :id "2")
+   [6 2] (assoc WHITE-PAWN :id "3")
+   [6 3] (assoc WHITE-PAWN :id "4")
+   [6 4] (assoc WHITE-PAWN :id "5")
+   [6 5] (assoc WHITE-PAWN :id "6")
+   [6 6] (assoc WHITE-PAWN :id "7")
+   [6 7] (assoc WHITE-PAWN :id "8")
 
-   [7 0] WHITE-ROOK
-   [7 1] WHITE-KNIGHT
-   [7 2] WHITE-BISHOP
-   [7 3] WHITE-KING
-   [7 4] WHITE-QUEEN
-   [7 5] WHITE-BISHOP
-   [7 6] WHITE-KNIGHT
-   [7 7] WHITE-ROOK})
+   [7 0] (assoc WHITE-ROOK :id "1")
+   [7 1] (assoc WHITE-KNIGHT :id "1")
+   [7 2] (assoc WHITE-BISHOP :id "1")
+   [7 3] (assoc WHITE-KING :id "1")
+   [7 4] (assoc WHITE-QUEEN :id "1")
+   [7 5] (assoc WHITE-BISHOP :id "2")
+   [7 6] (assoc WHITE-KNIGHT :id "2")
+   [7 7] (assoc WHITE-ROOK :id "2")})
 
 (defn lookup-piece
   [state piece]
