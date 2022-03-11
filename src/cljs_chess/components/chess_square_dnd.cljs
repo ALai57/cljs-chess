@@ -1,7 +1,7 @@
 (ns cljs-chess.components.chess-square-dnd
-  (:require [taoensso.timbre :refer-macros [infof]]
-            ["react-dnd" :as rdnd]
-            [cljs-chess.components.chess-piece :as chess-piece]))
+  (:require ["react-dnd" :as rdnd]
+            [cljs-chess.components.chess-piece :as chess-piece]
+            [taoensso.timbre :refer-macros [infof]]))
 
 (defn item-in-drop-zone?
   [monitor]
