@@ -19,7 +19,7 @@
 (defn -chess-square-dnd
   "Required because the `useDrag` context uses a Hook and that must be inside a
   Functional component"
-  [{:keys [dim id style piece background-color coords]
+  [{:keys [dim id style piece background-color coords on-drop]
     :or   {dim "100px"}
     :as   arg}
    children]
@@ -27,7 +27,10 @@
         (rdnd/useDrop
           (fn []
             #js {:accept  "KNIGHT"
-                 :drop    (fn [item monitor] (js/console.log "DROPPED!" (clj->js coords)))
+                 :drop    (comp on-drop (fn [item monitor]
+                                          (js/console.log "ITEM!" item)
+                                          (js/console.log "MONITOR!" monitor)
+                                          (js/console.log "DROPPED!" (clj->js coords))))
                  :collect (partial get-state id)}))]
     (fn []
       [:div.background-darkgrey.hover-icon.chess-square

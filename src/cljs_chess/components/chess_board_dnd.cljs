@@ -27,7 +27,7 @@
   dnd-backend/HTML5Backend)
 
 (defn chess-board
-  [{:keys [rows cols tag square-size game-board]
+  [{:keys [rows cols tag square-size game-board on-drop]
     :or   {square-size 100}}]
   (fn [{:keys [rows cols tag square-size game-board]
         :or   {square-size 100}}]
@@ -42,6 +42,7 @@
                    :let [id (cell-key tag row col)]]
                ^{:key id}
                [cs/chess-square-dnd
-                {:id     id
-                 :coords [row col]
-                 :piece  (get game-board [row col])}]))]))]]))
+                {:id      id
+                 :coords  [row col]
+                 :on-drop (partial on-drop [row col])
+                 :piece   (get game-board [row col])}]))]))]]))
