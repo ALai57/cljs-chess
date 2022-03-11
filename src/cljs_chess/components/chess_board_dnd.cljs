@@ -1,7 +1,8 @@
 (ns cljs-chess.components.chess-board-dnd
   (:require [cljs-chess.components.chess-square-dnd :as cs]
+            [cljs-chess.chess :as chess]
             [reagent.core :as reagent]
-            [taoensso.timbre :refer-macros [infof]]
+            [taoensso.timbre :refer-macros [infof debugf]]
             ["react-dnd" :as rdnd]
             ["react-dnd-html5-backend" :as dnd-backend]))
 
@@ -13,18 +14,17 @@
   [tag row col]
   (str tag "-" row "-" col))
 
-(defn on-click-handler
-  [active-square row col event]
-  (infof "Moving active square from %s to %s"
-    @active-square
-    [row col])
-  (reset! active-square [row col]))
-
 (def dnd-provider
   (reagent/adapt-react-class rdnd/DndProvider))
 
 (def html5-backend
   dnd-backend/HTML5Backend)
+
+(defn on-drop-handler
+  [state new-coords item monitor]
+  (let [[old-coords piece] (chess/lookup-piece state item)]
+    ;;(debugf "Dropping %s on %s" piece new-coords)
+    (chess/move-piece! state old-coords new-coords)))
 
 (defn chess-board
   [{:keys [rows cols tag square-size game-board on-drop]
