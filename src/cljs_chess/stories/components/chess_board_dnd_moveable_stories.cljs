@@ -6,7 +6,7 @@
 ;; TODO: Extract this to "Logic layer"
 ;;
 
-(def BLACK-KNIGHT {:piece "rook" :owner "black"})
+(def BLACK-ROOK {:piece "rook" :owner "black"})
 
 (def ^:export default
   (helper/->default {:title     "Chess Board DND Moveable"
@@ -14,7 +14,7 @@
                      :args      {:rows 8, :cols 8, :tag "example"}}))
 
 (def state
-  (reagent/atom {[0 0] BLACK-KNIGHT}))
+  (reagent/atom {[0 0] BLACK-ROOK}))
 
 (defn chess-component
   "This must be present. Don't understand why, but it doesn't work without it"
@@ -24,7 +24,7 @@
                              (assoc
                                :game-board @state
                                :on-drop    (fn [new-coords item monitor]
-                                             (chess-board/on-drop-handler state new-coords BLACK-KNIGHT))))])
+                                             (chess-board/on-drop-handler state new-coords item monitor))))])
 
 ;; A "Templating" example, as an alternative to the JavaScript bind syntax explained in the Storybook docs
 (defn template

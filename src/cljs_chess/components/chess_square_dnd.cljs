@@ -8,6 +8,7 @@
   (. monitor isOver))
 
 (defn get-state
+  "This is not working, for some reason. Unclear why."
   [id monitor]
   ;;(js/console.log "Monitor" monitor)
   ;;(js/console.log "Item in drop zone?" (item-in-drop-zone? monitor) id)
@@ -18,9 +19,7 @@
 
 (defn log-drop-event!
   [item monitor]
-  (js/console.log "ITEM!" item)
-  (js/console.log "MONITOR!" monitor)
-  #_(js/console.log "DROPPED!" (clj->js coords)))
+  #_(js/console.log "Drop event triggered with:\n\nITEM\n" item "\n\nMONITOR\n" monitor))
 
 (defn -chess-square-dnd
   "Required because the `useDrag` context uses a Hook and that must be inside a
@@ -33,7 +32,10 @@
         (rdnd/useDrop
           (fn []
             #js {:accept  "KNIGHT"
-                 :drop    (comp on-drop log-drop-event!)
+                 :drop    (fn [item monitor]
+                            (let [item (js->clj item :keywordize-keys true)]
+                              (log-drop-event! item monitor)
+                              (on-drop item monitor)))
                  :collect (partial get-state id)}))]
     (fn []
       [:div.background-darkgrey.hover-icon.chess-square

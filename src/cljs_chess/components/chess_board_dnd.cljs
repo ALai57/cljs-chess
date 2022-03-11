@@ -22,8 +22,9 @@
 
 (defn on-drop-handler
   [state new-coords item monitor]
-  (let [[old-coords piece] (chess/lookup-piece state item)]
-    ;;(debugf "Dropping %s on %s" piece new-coords)
+  (infof "Drop-handler: Dropping Item %s at Coordinate %s on Board %s"
+    item new-coords @state)
+  (let [[old-coords piece :as result] (chess/lookup-piece state item)]
     (chess/move-piece! state old-coords new-coords)))
 
 (defn chess-board
