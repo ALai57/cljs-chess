@@ -1,5 +1,6 @@
 (ns cljs-chess.components.chess-piece
-  (:require ["react-dnd" :as rdnd]))
+  (:require ["react-dnd" :as rdnd]
+            [taoensso.timbre :refer-macros [infof]]))
 
 (defn drag-active?
   [monitor]
@@ -11,10 +12,7 @@
 
 (defn get-state
   [monitor]
-  #_(js/console.log "Getitem: "(. monitor getItem))
-  #_(if (drag-active? monitor)
-      (js/console.log "DRAGGING")
-      (js/console.log "NOT DRAGGING"))
+  #_(infof "Dragging? %s" (drag-active? monitor))
   {:dragging? (drag-active? monitor)})
 
 (defn chess-piece
