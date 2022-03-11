@@ -16,6 +16,12 @@
                     #_(item-in-drop-zone? monitor)
                     false)})
 
+(defn log-drop-event!
+  [item monitor]
+  (js/console.log "ITEM!" item)
+  (js/console.log "MONITOR!" monitor)
+  #_(js/console.log "DROPPED!" (clj->js coords)))
+
 (defn -chess-square-dnd
   "Required because the `useDrag` context uses a Hook and that must be inside a
   Functional component"
@@ -27,10 +33,7 @@
         (rdnd/useDrop
           (fn []
             #js {:accept  "KNIGHT"
-                 :drop    (comp on-drop (fn [item monitor]
-                                          (js/console.log "ITEM!" item)
-                                          (js/console.log "MONITOR!" monitor)
-                                          (js/console.log "DROPPED!" (clj->js coords))))
+                 :drop    (comp on-drop log-drop-event!)
                  :collect (partial get-state id)}))]
     (fn []
       [:div.background-darkgrey.hover-icon.chess-square

@@ -1,6 +1,10 @@
 (ns cljs-chess.chess
   (:require [taoensso.timbre :refer-macros [infof]]))
 
+;; Example of the state contained in a reagent atom
+;; {[0 0] {:piece "rook" :owner "black"}
+;;  [2 4] {:piece "queen" :owner "white"}}
+
 (defn lookup-piece
   [state piece]
   (first (filter (comp (partial = piece)
