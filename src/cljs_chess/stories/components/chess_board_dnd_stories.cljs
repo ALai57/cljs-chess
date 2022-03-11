@@ -4,12 +4,6 @@
             [reagent.core :as reagent]))
 
 ;; dnd-kit
-(def EMPTY-ROW
-  (into [] (repeat 8 nil)))
-
-(def empty-board
-  (into [] (repeat 8 EMPTY-ROW)))
-
 (def ^:export default
   (helper/->default {:title     "Chess Board DND"
                      :component chess-board/chess-board
@@ -37,11 +31,6 @@
                                                  :game-board
                                                  update-game-board)]))
 
-(def ^:export Empty-Dnd-Board
-  (helper/->story template {}))
-
-
-
 (def BLACK-ROOK {:piece :rook :owner :black})
 (def BLACK-KNIGHT {:piece :knight :owner :black})
 (def BLACK-BISHOP {:piece :bishop :owner :black})
@@ -55,9 +44,6 @@
 (def WHITE-QUEEN {:piece :queen :owner :white})
 (def WHITE-KING {:piece :king :owner :white})
 (def WHITE-PAWN {:piece :pawn :owner :white})
-
-(def ^:export Partial-Dnd-Board
-  (helper/->story template {:game-board {[0 0] BLACK-ROOK}}))
 
 (def basic-board
   {[0 0] BLACK-ROOK
@@ -95,6 +81,12 @@
    [7 5] WHITE-BISHOP
    [7 6] WHITE-KNIGHT
    [7 7] WHITE-ROOK})
+
+(def ^:export Empty-Dnd-Board
+  (helper/->story template {}))
+
+(def ^:export Partial-Dnd-Board
+  (helper/->story template {:game-board {[0 0] BLACK-ROOK}}))
 
 (def ^:export Full-Dnd-Board
   (helper/->story template {:game-board basic-board}))
