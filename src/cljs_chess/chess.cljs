@@ -2,8 +2,8 @@
   (:require [taoensso.timbre :refer-macros [infof]]))
 
 ;; Example of the state contained in a reagent atom
-;; {[0 0] {:piece "rook" :owner "black"}
-;;  [2 4] {:piece "queen" :owner "white"}}
+;; {[0 0] {:piece "rook" :owner "black" :id "1"}
+;;  [2 4] {:piece "queen" :owner "white" :id "1"}}
 
 (def BLACK-ROOK {:piece "rook" :owner "black"})
 (def BLACK-KNIGHT {:piece "knight" :owner "black"})
