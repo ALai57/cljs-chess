@@ -62,7 +62,8 @@
 (defn diagonal?
   [[y1 x1 :as old-loc]
    [y2 x2 :as new-loc]]
-  false)
+  (->> (map (comp abs -) old-loc new-loc)
+       (apply =)))
 
 (defn abs
   [x]
@@ -79,7 +80,7 @@
   (cond
     (horizontal? old-loc new-loc) (abs (- x1 x2))
     (vertical?   old-loc new-loc) (abs (- y1 y2))
-    (diagonal?   old-loc new-loc) 0
+    (diagonal?   old-loc new-loc) (abs (- y1 y2))
     :else 0))
 
 (defn path-beetween
@@ -117,7 +118,11 @@
             (and (or (horizontal? old-loc new-loc)
                      (vertical? old-loc new-loc))
                  (not (slide-blocked? state item old-loc new-loc))
-                 (valid-endpoint? state item old-loc new-loc)))})
+                 (valid-endpoint? state item old-loc new-loc)))
+   "bishop" (fn [state item old-loc new-loc]
+              (and (diagonal? old-loc new-loc)
+                   (not (slide-blocked? state item old-loc new-loc))
+                   (valid-endpoint? state item old-loc new-loc)))})
 
 (defn can-drop?
   [state new-loc item monitor]
