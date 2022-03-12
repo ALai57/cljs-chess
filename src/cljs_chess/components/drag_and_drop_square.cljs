@@ -10,13 +10,16 @@
 (defn -dnd-square
   "Required because the `useDrag` context uses a Hook and that must be inside a
   Functional component"
-  [{:keys [dim id style background-color coords on-drop accept]
+  [{:keys [dim id style background-color coords on-drop can-drop? accept]
     :or   {dim "100px"}
     :as   arg}
    children]
   (let [[_ drop] (rdnd/useDrop
                    (fn []
                      #js {:accept  accept
+                          :canDrop (fn [item monitor]
+                                     (let [item (js->clj item :keywordize-keys true)]
+                                       (can-drop? item monitor)))
                           :drop    (fn [item monitor]
                                      (let [item (js->clj item :keywordize-keys true)]
                                        (log-drop-event! item monitor)

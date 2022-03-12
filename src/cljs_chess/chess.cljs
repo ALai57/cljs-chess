@@ -60,7 +60,11 @@
   [state piece]
   (first (filter (comp (partial = piece)
                    second)
-           @state)))
+           state)))
+
+(defn lookup-loc
+  [state loc]
+  (get state loc))
 
 (defn move-piece!
   [state old-coords new-coords]
@@ -68,3 +72,7 @@
     (infof "Moving %s from %s to %s" piece old-coords new-coords)
     (swap! state dissoc old-coords)
     (swap! state assoc new-coords piece)))
+
+(defn piece-type
+  [{:keys [piece]}]
+  piece)

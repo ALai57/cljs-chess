@@ -1,6 +1,5 @@
 (ns cljs-chess.stories.components.drag-and-drop-board-stories
   (:require [cljs-chess.components.drag-and-drop-board :as dnd-board]
-            [cljs-chess.components.chess-board-dnd :as chess-board]
             [cljs-chess.components.chess-piece :as chess-piece]
             [cljs-chess.chess :refer [BLACK-ROOK]]
             [cljs-chess.stories.helper :as helper]
@@ -22,7 +21,7 @@
                                    (assoc
                                      :state     @state
                                      :item-type chess-piece/chess-piece
-                                     :on-drop   (partial chess-board/on-drop-handler state)))])
+                                     :on-drop   (partial dnd-board/on-drop-handler state)))])
 
 ;; A "Templating" example, as an alternative to the JavaScript bind syntax explained in the Storybook docs
 (defn template
