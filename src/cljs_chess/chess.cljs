@@ -74,5 +74,9 @@
     (swap! state assoc new-coords piece)))
 
 (defn piece-type
-  [{:keys [piece]}]
-  piece)
+  [piece]
+  (:piece piece))
+
+(defn piece-owner
+  [piece]
+  (:owner piece))

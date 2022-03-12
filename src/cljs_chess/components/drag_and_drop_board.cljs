@@ -82,43 +82,49 @@
     (diagonal?   old-loc new-loc) 0
     :else 0))
 
-(defn path
+(defn path-beetween
   [old-loc new-loc]
   (let [step (partial map + (direction old-loc new-loc))
-        n    (distance old-loc new-loc)]
+        n    (dec (distance old-loc new-loc))]
     (->> (step old-loc)
          (iterate step)
          (take n)))
   #_(println "UNIT DIRECTION" (direction old-loc new-loc)))
 
 (defn blockers
-  [state old-loc new-loc]
-  (let [pts (path old-loc new-loc)]
+  [state item old-loc new-loc]
+  (let [pts (path-beetween old-loc new-loc)]
     ;;(println pts "BETWEEN" old-loc new-loc)
     (reduce (fn [acc pt]
               (if-let [blocker (chess/lookup-loc state pt)]
                 (conj acc blocker)
                 acc))
-      #{}
-      pts)))
+            #{}
+            pts)))
 
 (defn slide-blocked?
-  [state old-loc new-loc]
-  (seq (blockers state old-loc new-loc)))
+  [state item old-loc new-loc]
+  (seq (blockers state item old-loc new-loc)))
+
+(defn valid-endpoint?
+  [state item old-loc new-loc]
+  (not= (chess/piece-owner item)
+        (chess/piece-owner (get state new-loc))))
 
 
 (def MOVEMENT-POLICY
-  {"rook" (fn [state old-loc new-loc]
+  {"rook" (fn [state item old-loc new-loc]
             (and (or (horizontal? old-loc new-loc)
                      (vertical? old-loc new-loc))
-                 (not (slide-blocked? state old-loc new-loc))))})
+                 (not (slide-blocked? state item old-loc new-loc))
+                 (valid-endpoint? state item old-loc new-loc)))})
 
 (defn can-drop?
   [state new-loc item monitor]
   (let [[old-loc] (chess/lookup-piece state item)
         policy    (get MOVEMENT-POLICY (chess/piece-type item) (constantly true))]
     ;;(infof "Checking if %s can be moved from %s to %s" item old-loc new-loc)
-    (policy state old-loc new-loc)))
+    (policy state item old-loc new-loc)))
 
 (defn on-drop-handler
   [state new-coords item monitor]
