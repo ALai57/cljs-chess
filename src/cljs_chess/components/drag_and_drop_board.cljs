@@ -1,10 +1,10 @@
 (ns cljs-chess.components.drag-and-drop-board
-  (:require [cljs-chess.components.drag-and-drop-square :as dnds]
+  (:require ["react-dnd" :as rdnd]
+            ["react-dnd-html5-backend" :as dnd-backend]
             [cljs-chess.chess :as chess]
+            [cljs-chess.components.drag-and-drop-square :as dnds]
             [reagent.core :as reagent]
-            [taoensso.timbre :refer-macros [infof debugf]]
-            ["react-dnd" :as rdnd]
-            ["react-dnd-html5-backend" :as dnd-backend]))
+            [taoensso.timbre :refer-macros [infof debugf]]))
 
 (defn row-key
   [tag row]
@@ -87,8 +87,8 @@
   (let [step (partial map + (direction old-loc new-loc))
         n    (distance old-loc new-loc)]
     (->> (step old-loc)
-      (iterate step)
-      (take n)))
+         (iterate step)
+         (take n)))
   #_(println "UNIT DIRECTION" (direction old-loc new-loc)))
 
 (defn blockers
@@ -110,8 +110,8 @@
 (def MOVEMENT-POLICY
   {"rook" (fn [state old-loc new-loc]
             (and (or (horizontal? old-loc new-loc)
-                   (vertical? old-loc new-loc))
-              (not (slide-blocked? state old-loc new-loc))))})
+                     (vertical? old-loc new-loc))
+                 (not (slide-blocked? state old-loc new-loc))))})
 
 (defn can-drop?
   [state new-loc item monitor]
@@ -123,8 +123,8 @@
 (defn on-drop-handler
   [state new-coords item monitor]
   (infof "Drop-handler: Dropping Item %s at Coordinate %s on Board"
-    item new-coords @state)
+         item new-coords @state)
   #_(infof "Drop-handler: Dropping Item %s at Coordinate %s on Board %s"
-      item new-coords @state)
+           item new-coords @state)
   (let [[old-coords piece :as result] (chess/lookup-piece @state item)]
     (chess/move-piece! state old-coords new-coords)))
