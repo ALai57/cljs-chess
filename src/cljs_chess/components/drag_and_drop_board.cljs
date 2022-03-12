@@ -117,12 +117,14 @@
   [state new-loc item monitor]
   (let [[old-loc] (chess/lookup-piece state item)
         policy    (get MOVEMENT-POLICY (chess/piece-type item) (constantly true))]
-    (infof "Checking if %s can be moved from %s to %s" item old-loc new-loc)
+    ;;(infof "Checking if %s can be moved from %s to %s" item old-loc new-loc)
     (policy state old-loc new-loc)))
 
 (defn on-drop-handler
   [state new-coords item monitor]
-  (infof "Drop-handler: Dropping Item %s at Coordinate %s on Board %s"
+  (infof "Drop-handler: Dropping Item %s at Coordinate %s on Board"
     item new-coords @state)
+  #_(infof "Drop-handler: Dropping Item %s at Coordinate %s on Board %s"
+      item new-coords @state)
   (let [[old-coords piece :as result] (chess/lookup-piece @state item)]
     (chess/move-piece! state old-coords new-coords)))
