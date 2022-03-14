@@ -151,9 +151,8 @@
 
 (defn on-drop-handler
   [state new-coords item monitor]
+  ;; Add an additional %s to print the board state
   (infof "Drop-handler: Dropping Item %s at Coordinate %s on Board"
          item new-coords @state)
-  #_(infof "Drop-handler: Dropping Item %s at Coordinate %s on Board %s"
-           item new-coords @state)
   (let [[old-coords piece :as result] (chess/lookup-piece @state item)]
     (chess/move-piece! state old-coords new-coords)))
