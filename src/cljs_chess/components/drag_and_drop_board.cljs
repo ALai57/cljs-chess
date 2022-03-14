@@ -112,13 +112,31 @@
   (not= (chess/piece-owner item)
         (chess/piece-owner (get state new-loc))))
 
+(defn valid-knight-move?
+  [old-loc new-loc]
+  (= [1 2]
+     (sort (map (comp abs -) old-loc new-loc))))
 
 (def MOVEMENT-POLICY
-  {"rook" (fn [state item old-loc new-loc]
-            (and (or (horizontal? old-loc new-loc)
-                     (vertical? old-loc new-loc))
-                 (not (slide-blocked? state item old-loc new-loc))
-                 (valid-endpoint? state item old-loc new-loc)))
+  {"rook"   (fn [state item old-loc new-loc]
+              (and (or (horizontal? old-loc new-loc)
+                       (vertical? old-loc new-loc))
+                   (not (slide-blocked? state item old-loc new-loc))
+                   (valid-endpoint? state item old-loc new-loc)))
+   "queen"  (fn [state item old-loc new-loc]
+              (and (or (horizontal? old-loc new-loc)
+                       (vertical? old-loc new-loc)
+                       (diagonal? old-loc new-loc))
+                   (not (slide-blocked? state item old-loc new-loc))
+                   (valid-endpoint? state item old-loc new-loc)))
+   "king"   (fn [state item old-loc new-loc]
+              (and (= 1 (distance old-loc new-loc))
+                   (valid-endpoint? state item old-loc new-loc)))
+   "knight" (fn [state item old-loc new-loc]
+              (and (valid-knight-move? old-loc new-loc)
+                   (valid-endpoint? state item old-loc new-loc)))
+   "pawn"   (fn [state item old-loc new-loc]
+              true)
    "bishop" (fn [state item old-loc new-loc]
               (and (diagonal? old-loc new-loc)
                    (not (slide-blocked? state item old-loc new-loc))
