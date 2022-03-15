@@ -2,6 +2,7 @@
   (:require ["react-dnd" :as rdnd]
             ["react-dnd-html5-backend" :as dnd-backend]
             [cljs-chess.chess :as chess]
+            [cljs-chess.utils.geometry :as geom]
             [cljs-chess.components.drag-and-drop-square :as dnds]
             [reagent.core :as reagent]
             [taoensso.timbre :refer-macros [infof debugf]]))
@@ -29,64 +30,30 @@
     [dnd-provider {:backend html5-backend}
      [:div.chess-board {:style {:min-width (str (* square-size cols) "px")}}
       (doall
-        (for [row (range rows)]
-          ^{:key (row-key tag row)}
-          [:div.board-row
-           (doall
-             (for [col  (range cols)
-                   :let [id            (cell-key tag row col)
-                         loc           [row col]
-                         current-piece (get state loc)]]
-               ^{:key id}
-               [dnds/drag-and-drop-square
-                {:id        id
-                 :accept    "KNIGHT"
-                 :coords    loc
-                 :on-drop   (partial on-drop loc)
-                 :can-drop? (partial can-drop? state loc)
-                 :piece     (when current-piece
-                              [:f> (partial item-type current-piece)])}]))]))]]))
+       (for [row (range rows)]
+         ^{:key (row-key tag row)}
+         [:div.board-row
+          (doall
+           (for [col  (range cols)
+                 :let [id            (cell-key tag row col)
+                       loc           [row col]
+                       current-piece (get state loc)]]
+             ^{:key id}
+             [dnds/drag-and-drop-square
+              {:id        id
+               :accept    "KNIGHT"
+               :coords    loc
+               :on-drop   (partial on-drop loc)
+               :can-drop? (partial can-drop? state loc)
+               :piece     (when current-piece
+                            [:f> (partial item-type current-piece)])}]))]))]]))
 
 
 ;; Chess related
-(defn horizontal?
-  [[y1 x1 :as old-loc]
-   [y2 x2 :as new-loc]]
-  (= y1 y2))
-
-(defn vertical?
-  [[y1 x1 :as old-loc]
-   [y2 x2 :as new-loc]]
-  (= x1 x2))
-
-(defn diagonal?
-  [[y1 x1 :as old-loc]
-   [y2 x2 :as new-loc]]
-  (->> (map (comp abs -) old-loc new-loc)
-       (apply =)))
-
-(defn abs
-  [x]
-  (if (pos? x) x (- x)))
-
-(defn direction
-  [old-loc new-loc]
-  (let [v (map - new-loc old-loc)]
-    (map (fn [x] (/ x (apply max (map abs v)))) v)))
-
-(defn distance
-  [[y1 x1 :as old-loc]
-   [y2 x2 :as new-loc]]
-  (cond
-    (horizontal? old-loc new-loc) (abs (- x1 x2))
-    (vertical?   old-loc new-loc) (abs (- y1 y2))
-    (diagonal?   old-loc new-loc) (abs (- y1 y2))
-    :else 0))
-
 (defn path-beetween
   [old-loc new-loc]
-  (let [step (partial map + (direction old-loc new-loc))
-        n    (dec (distance old-loc new-loc))]
+  (let [step (partial map + (geom/direction old-loc new-loc))
+        n    (dec (geom/distance old-loc new-loc))]
     (->> (step old-loc)
          (iterate step)
          (take n)))
@@ -94,7 +61,7 @@
 
 (defn blockers
   [state item old-loc new-loc]
-  (let [pts (path-beetween old-loc new-loc)]
+  (let [pts (geom/path-beetween old-loc new-loc)]
     ;;(println pts "BETWEEN" old-loc new-loc)
     (reduce (fn [acc pt]
               (if-let [blocker (chess/lookup-loc state pt)]
@@ -115,37 +82,54 @@
 (defn valid-knight-move?
   [old-loc new-loc]
   (= [1 2]
-     (sort (map (comp abs -) old-loc new-loc))))
+     (sort (map (comp geom/abs -) old-loc new-loc))))
+
+(defn empty-square?
+  [state loc]
+  (nil? (get state loc)))
+
+(def UP [-1 0])
+(def DOWN [1 0])
+
+(def PAWN-DIRECTION
+  {"black" DOWN
+   "white" UP})
 
 (def MOVEMENT-POLICY
   {"rook"   (fn [state item old-loc new-loc]
-              (and (or (horizontal? old-loc new-loc)
-                       (vertical? old-loc new-loc))
+              (and (or (geom/horizontal? old-loc new-loc)
+                       (geom/vertical? old-loc new-loc))
                    (not (slide-blocked? state item old-loc new-loc))
                    (valid-endpoint? state item old-loc new-loc)))
    "queen"  (fn [state item old-loc new-loc]
-              (and (or (horizontal? old-loc new-loc)
-                       (vertical? old-loc new-loc)
-                       (diagonal? old-loc new-loc))
+              (and (or (geom/horizontal? old-loc new-loc)
+                       (geom/vertical? old-loc new-loc)
+                       (geom/diagonal? old-loc new-loc))
                    (not (slide-blocked? state item old-loc new-loc))
                    (valid-endpoint? state item old-loc new-loc)))
    "king"   (fn [state item old-loc new-loc]
-              (and (= 1 (distance old-loc new-loc))
+              (and (= 1 (geom/distance old-loc new-loc))
                    (valid-endpoint? state item old-loc new-loc)))
    "knight" (fn [state item old-loc new-loc]
               (and (valid-knight-move? old-loc new-loc)
                    (valid-endpoint? state item old-loc new-loc)))
    "pawn"   (fn [state item old-loc new-loc]
-              true)
+              (let [dir (get PAWN-DIRECTION (chess/piece-owner item))]
+                (infof "Valid pawn directions %s" dir)
+                (or (and (= new-loc (map + old-loc dir))
+                         (empty-square? state new-loc))
+                    #_(and (valid-endpoint? state item old-loc new-loc)))))
    "bishop" (fn [state item old-loc new-loc]
-              (and (diagonal? old-loc new-loc)
+              (and (geom/diagonal? old-loc new-loc)
                    (not (slide-blocked? state item old-loc new-loc))
                    (valid-endpoint? state item old-loc new-loc)))})
+
+(def ALWAYS-VALID-POLICY (constantly true))
 
 (defn can-drop?
   [state new-loc item monitor]
   (let [[old-loc] (chess/lookup-piece state item)
-        policy    (get MOVEMENT-POLICY (chess/piece-type item) (constantly true))]
+        policy    (get MOVEMENT-POLICY (chess/piece-type item) ALWAYS-VALID-POLICY)]
     ;;(infof "Checking if %s can be moved from %s to %s" item old-loc new-loc)
     (policy state item old-loc new-loc)))
 
