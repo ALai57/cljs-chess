@@ -213,7 +213,6 @@
 ;; Handlers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; TODO: Extract these to more generic location
 ;; TODO: Set up testing for logic
 (defn can-drop?
   [state new-loc piece monitor]
