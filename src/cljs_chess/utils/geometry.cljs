@@ -1,5 +1,9 @@
 (ns cljs-chess.utils.geometry)
 
+(defn abs
+  [x]
+  (if (pos? x) x (- x)))
+
 (defn horizontal?
   [[y1 x1 :as old-loc]
    [y2 x2 :as new-loc]]
@@ -15,10 +19,6 @@
    [y2 x2 :as new-loc]]
   (->> (map (comp abs -) old-loc new-loc)
        (apply =)))
-
-(defn abs
-  [x]
-  (if (pos? x) x (- x)))
 
 (defn direction
   [old-loc new-loc]

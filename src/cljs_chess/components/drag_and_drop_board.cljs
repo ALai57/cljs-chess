@@ -23,11 +23,12 @@
 (def DEFAULT-SQUARE-SIZE 60)
 
 (defn drag-and-drop-board
-  [{:keys [rows cols tag square-size state on-drop item-type]
+  [{:keys [rows cols tag square-size state on-drop can-drop? item-type]
     :or   {square-size DEFAULT-SQUARE-SIZE
            can-drop?   (constantly true)}}]
-  (fn [{:keys [rows cols tag square-size state]
-        :or   {square-size DEFAULT-SQUARE-SIZE}}]
+  (fn [{:keys [rows cols tag square-size state can-drop?]
+        :or   {square-size DEFAULT-SQUARE-SIZE
+               can-drop?   (constantly true)}}]
     [dnd-provider {:backend html5-backend}
      [:div.chess-board {:style {:min-width (str (* square-size cols) "px")}}
       (doall
