@@ -136,6 +136,10 @@
               (let [step (get PAWN-DIRECTION (chess/piece-owner item))]
                 (or (and (= new-loc (map + old-loc step))
                          (empty-square? state new-loc))
+                    (and (= new-loc (map + old-loc step step))
+                         (chess/first-move? item)
+                         (empty-square? state new-loc)
+                         (not (slide-blocked? state item old-loc new-loc)))
                     (valid-pawn-take? state item old-loc new-loc))))
    "bishop" (fn [state item old-loc new-loc]
               (and (geom/diagonal? old-loc new-loc)
