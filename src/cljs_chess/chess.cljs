@@ -78,9 +78,8 @@
   [state loc]
   (get state loc))
 
-(defn empty-square?
-  [state loc]
-  (nil? (lookup-loc state loc)))
+(def empty-square?
+  (comp nil? lookup-loc))
 
 (defn blockers
   [state pts]
@@ -105,10 +104,11 @@
   (:owner piece))
 
 (defn move-piece!
-  [state piece old-loc new-loc]
-  (infof "Moving %s from %s to %s" piece old-loc new-loc)
-  (swap! state dissoc old-loc)
-  (swap! state assoc new-loc (update-when piece :first-move? (constantly false))))
+  [state old-loc new-loc]
+  (when-let [piece (lookup-loc @state old-loc)]
+    (infof "Moving %s from %s to %s" piece old-loc new-loc)
+    (swap! state dissoc old-loc)
+    (swap! state assoc new-loc (update-when piece :first-move? (constantly false)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Movement policy
@@ -226,4 +226,4 @@
   (let [[old-loc] (lookup-piece @state piece)]
     ;; Add an additional %s in the infof to print the board state
     ;;(infof "Drop-handler: Dropping piece %s at Coordinate %s on Board" piece new-loc @state)
-    (move-piece! state piece old-loc new-loc)))
+    (move-piece! state old-loc new-loc)))
