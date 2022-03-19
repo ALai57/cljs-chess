@@ -89,6 +89,10 @@
     (not= (chess/piece-owner item)
           owner)))
 
+(defn empty-square?
+  [state loc]
+  (nil? (get state loc)))
+
 (defn valid-knight-movement?
   [state item old-loc new-loc]
   (and (= [1 2]
@@ -139,10 +143,6 @@
        (not (slide-blocked? state item old-loc new-loc))
        (valid-endpoint? state item old-loc new-loc)))
 
-(defn empty-square?
-  [state loc]
-  (nil? (get state loc)))
-
 (def UP [-1 0])
 (def DOWN [1 0])
 
@@ -150,14 +150,19 @@
   {"black" DOWN
    "white" UP})
 
+(defn some-fn*
+  "A version of some-fn that accepts multiple arguments in the predicates"
+  [& ps]
+  (fn [& args]
+    (some #(apply % args) ps)))
+
 (def MOVEMENT-POLICY
   {"rook"   valid-rook-movement?
    "queen"  valid-queen-movement?
    "king"   valid-king-movement?
    "knight" valid-knight-movement?
-   "pawn"   (fn [state item old-loc new-loc]
-              (or (valid-pawn-movement? state item old-loc new-loc)
-                  (valid-pawn-take? state item old-loc new-loc)))
+   "pawn"   (some-fn* valid-pawn-movement?
+                      valid-pawn-take?)
    "bishop" valid-bishop-movement?})
 
 ;;(def ALWAYS-VALID-POLICY (constantly true))
