@@ -1,5 +1,11 @@
 (ns cljs-chess.chess
-  (:require [taoensso.timbre :refer-macros [infof]]))
+  (:require [cljs-chess.utils.geometry :as geom]
+            [taoensso.timbre :refer-macros [infof]]))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Basic board setup
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Example of the state contained in a reagent atom
 ;; {[0 0] {:piece "rook" :owner "black" :id "1"}
@@ -56,11 +62,14 @@
    [7 6] (assoc WHITE-KNIGHT :id "2")
    [7 7] (assoc WHITE-ROOK :id "2" :first-move? true)})
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Helpers
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn lookup-piece
   [state piece]
   (first (filter (comp (partial = piece)
-                   second)
-           state)))
+                       second)
+                 state)))
 
 (defn lookup-loc
   [state loc]
@@ -76,13 +85,6 @@
   [piece]
   (get piece :first-move?))
 
-(defn move-piece!
-  [state old-coords new-coords]
-  (let [piece (get @state old-coords)]
-    (infof "Moving %s from %s to %s" piece old-coords new-coords)
-    (swap! state dissoc old-coords)
-    (swap! state assoc new-coords (update-when piece :first-move? (constantly false)))))
-
 (defn piece-type
   [piece]
   (:piece piece))
@@ -90,3 +92,145 @@
 (defn piece-owner
   [piece]
   (:owner piece))
+
+(defn move-piece!
+  [state old-coords new-loc]
+  (let [piece (get @state old-coords)]
+    (infof "Moving %s from %s to %s" piece old-coords new-loc)
+    (swap! state dissoc old-coords)
+    (swap! state assoc new-loc (update-when piece :first-move? (constantly false)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Movement policy
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(def UP [-1 0])
+(def DOWN [1 0])
+
+(def PAWN-DIRECTION
+  {"black" DOWN
+   "white" UP})
+
+(defn some-fn*
+  "A version of some-fn that accepts multiple arguments in the predicates"
+  [& ps]
+  (fn [& args]
+    (some #(apply % args) ps)))
+
+(defn path-beetween
+  [old-loc new-loc]
+  (let [step (partial map + (geom/direction old-loc new-loc))
+        n    (dec (geom/distance old-loc new-loc))]
+    (->> (step old-loc)
+         (iterate step)
+         (take n)))
+  #_(println "UNIT DIRECTION" (direction old-loc new-loc)))
+
+(defn blockers
+  [state item old-loc new-loc]
+  (let [pts (geom/path-beetween old-loc new-loc)]
+    ;;(println pts "BETWEEN" old-loc new-loc)
+    (reduce (fn [acc pt]
+              (if-let [blocker (lookup-loc state pt)]
+                (conj acc blocker)
+                acc))
+            #{}
+            pts)))
+
+(defn slide-blocked?
+  [state item old-loc new-loc]
+  (seq (blockers state item old-loc new-loc)))
+
+(defn valid-endpoint?
+  [state item old-loc new-loc]
+  (not= (piece-owner item)
+        (piece-owner (get state new-loc))))
+
+(defn end-in-enemy-space?
+  "Does the move end in a space with an enemy?"
+  [state item old-loc new-loc]
+  (when-let [owner (piece-owner (get state new-loc))]
+    (not= (piece-owner item)
+          owner)))
+
+(defn empty-square?
+  [state loc]
+  (nil? (get state loc)))
+
+(defn valid-knight-movement?
+  [state item old-loc new-loc]
+  (and (= [1 2]
+          (sort (map (comp geom/abs -) old-loc new-loc)))
+       (valid-endpoint? state item old-loc new-loc)))
+
+(defn valid-pawn-take?
+  [state item old-loc new-loc]
+  (let [step (get PAWN-DIRECTION (piece-owner item))
+        d    (map - new-loc old-loc step)]
+    (and (or (= [0  1] d)
+             (= [0 -1] d))
+         (end-in-enemy-space? state item old-loc new-loc))))
+
+(defn valid-pawn-movement?
+  [state item old-loc new-loc]
+  (let [step (get PAWN-DIRECTION (piece-owner item))]
+    (or (and (= new-loc (map + old-loc step))
+             (empty-square? state new-loc))
+        (and (= new-loc (map + old-loc step step))
+             (empty-square? state new-loc)
+             (first-move? item)
+             (not (slide-blocked? state item old-loc new-loc))))))
+
+(defn valid-bishop-movement?
+  [state item old-loc new-loc]
+  (and (geom/diagonal? old-loc new-loc)
+       (not (slide-blocked? state item old-loc new-loc))
+       (valid-endpoint? state item old-loc new-loc)))
+
+(defn valid-king-movement?
+  [state item old-loc new-loc]
+  (and (= 1 (geom/distance old-loc new-loc))
+       (valid-endpoint? state item old-loc new-loc)))
+
+(defn valid-queen-movement?
+  [state item old-loc new-loc]
+  (and (or (geom/horizontal? old-loc new-loc)
+           (geom/vertical? old-loc new-loc)
+           (geom/diagonal? old-loc new-loc))
+       (not (slide-blocked? state item old-loc new-loc))
+       (valid-endpoint? state item old-loc new-loc)))
+
+(defn valid-rook-movement?
+  [state item old-loc new-loc]
+  (and (or (geom/horizontal? old-loc new-loc)
+           (geom/vertical? old-loc new-loc))
+       (not (slide-blocked? state item old-loc new-loc))
+       (valid-endpoint? state item old-loc new-loc)))
+
+(def MOVEMENT-POLICY
+  {"rook"   valid-rook-movement?
+   "queen"  valid-queen-movement?
+   "king"   valid-king-movement?
+   "knight" valid-knight-movement?
+   "pawn"   (some-fn* valid-pawn-movement?
+                      valid-pawn-take?)
+   "bishop" valid-bishop-movement?})
+
+(def ALWAYS-VALID-POLICY (constantly true))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Handlers
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn can-drop?
+  [state new-loc item monitor]
+  (let [[old-loc] (lookup-piece state item)
+        policy    (get MOVEMENT-POLICY (piece-type item))]
+    ;;(infof "Checking if %s can be moved from %s to %s" item old-loc new-loc)
+    (policy state item old-loc new-loc)))
+
+(defn on-drop-handler
+  [state new-loc item monitor]
+  ;; Add an additional %s to print the board state
+  (infof "Drop-handler: Dropping Item %s at Coordinate %s on Board"
+         item new-loc @state)
+  (let [[old-coords piece :as result] (lookup-piece @state item)]
+    (move-piece! state old-coords new-loc)))
