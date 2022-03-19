@@ -154,7 +154,7 @@
 
 (defn empty-square?
   [state loc]
-  (nil? (get state loc)))
+  (nil? (lookup-loc state loc)))
 
 (defn valid-knight-movement?
   [state item old-loc new-loc]
@@ -180,31 +180,30 @@
              (first-move? item)
              (not (slide-blocked? state item old-loc new-loc))))))
 
-(defn valid-bishop-movement?
-  [state item old-loc new-loc]
-  (and (geom/diagonal? old-loc new-loc)
+(defn valid-slide?
+  [valid-direction? state item old-loc new-loc]
+  (and (valid-direction? old-loc new-loc)
        (not (slide-blocked? state item old-loc new-loc))
        (valid-endpoint? state item old-loc new-loc)))
 
-(defn valid-king-movement?
-  [state item old-loc new-loc]
-  (and (= 1 (geom/distance old-loc new-loc))
-       (valid-endpoint? state item old-loc new-loc)))
+(def single-square-move?
+  (comp (partial = 1)
+        geom/distance))
 
-(defn valid-queen-movement?
-  [state item old-loc new-loc]
-  (and (or (geom/horizontal? old-loc new-loc)
-           (geom/vertical? old-loc new-loc)
-           (geom/diagonal? old-loc new-loc))
-       (not (slide-blocked? state item old-loc new-loc))
-       (valid-endpoint? state item old-loc new-loc)))
+(def valid-king-movement?
+  (partial valid-slide? single-square-move?))
 
-(defn valid-rook-movement?
-  [state item old-loc new-loc]
-  (and (or (geom/horizontal? old-loc new-loc)
-           (geom/vertical? old-loc new-loc))
-       (not (slide-blocked? state item old-loc new-loc))
-       (valid-endpoint? state item old-loc new-loc)))
+(def valid-bishop-movement?
+  (partial valid-slide? geom/diagonal?))
+
+(def valid-rook-movement?
+  (partial valid-slide? (some-fn* geom/horizontal?
+                                  geom/vertical?)))
+
+(def valid-queen-movement?
+  (partial valid-slide? (some-fn* geom/horizontal?
+                                  geom/vertical?
+                                  geom/diagonal?)))
 
 (def MOVEMENT-POLICY
   {"rook"   valid-rook-movement?
