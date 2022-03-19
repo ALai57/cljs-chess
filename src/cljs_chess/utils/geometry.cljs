@@ -42,3 +42,8 @@
          (iterate step)
          (take n)))
   #_(println "UNIT DIRECTION" (direction old-loc new-loc)))
+
+(defn L-movement?
+  [old-loc new-loc]
+  (= [1 2]
+     (sort (map (comp abs -) old-loc new-loc))))
