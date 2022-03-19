@@ -41,7 +41,7 @@
              ^{:key id}
              [dnds/drag-and-drop-square
               {:id        id
-               :accept    "KNIGHT"
+               :accept    "PIECE"
                :coords    loc
                :on-drop   (partial on-drop loc)
                :can-drop? (partial can-drop? state loc)
@@ -79,10 +79,26 @@
   (not= (chess/piece-owner item)
         (chess/piece-owner (get state new-loc))))
 
+(defn end-in-enemy-space?
+  "Does the move end in a space with an enemy?"
+  [state item old-loc new-loc]
+  (when-let [owner (chess/piece-owner (get state new-loc))]
+    (not= (chess/piece-owner item)
+          owner)))
+
 (defn valid-knight-move?
   [old-loc new-loc]
   (= [1 2]
      (sort (map (comp geom/abs -) old-loc new-loc))))
+
+(defn valid-pawn-take?
+  [state item old-loc new-loc]
+  (let [step (get PAWN-DIRECTION (chess/piece-owner item))
+        d    (map - new-loc old-loc step)]
+    ;;(println step d)
+    (and (or (= [0  1] d)
+             (= [0 -1] d))
+         (end-in-enemy-space? state item old-loc new-loc))))
 
 (defn empty-square?
   [state loc]
@@ -114,11 +130,10 @@
               (and (valid-knight-move? old-loc new-loc)
                    (valid-endpoint? state item old-loc new-loc)))
    "pawn"   (fn [state item old-loc new-loc]
-              (let [dir (get PAWN-DIRECTION (chess/piece-owner item))]
-                (infof "Valid pawn directions %s" dir)
-                (or (and (= new-loc (map + old-loc dir))
+              (let [step (get PAWN-DIRECTION (chess/piece-owner item))]
+                (or (and (= new-loc (map + old-loc step))
                          (empty-square? state new-loc))
-                    #_(and (valid-endpoint? state item old-loc new-loc)))))
+                    (valid-pawn-take? state item old-loc new-loc))))
    "bishop" (fn [state item old-loc new-loc]
               (and (geom/diagonal? old-loc new-loc)
                    (not (slide-blocked? state item old-loc new-loc))

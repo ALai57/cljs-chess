@@ -19,7 +19,7 @@
   [piece]
   (let [[{:keys [dragging?] :as _state} drag] (rdnd/useDrag
                                                 (fn []
-                                                  #js {:type    "KNIGHT"
+                                                  #js {:type    "PIECE"
                                                        :item    (clj->js piece)
                                                        :collect get-state}))]
     ^{:key (get-image piece)}
