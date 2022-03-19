@@ -89,19 +89,55 @@
     (not= (chess/piece-owner item)
           owner)))
 
-(defn valid-knight-move?
-  [old-loc new-loc]
-  (= [1 2]
-     (sort (map (comp geom/abs -) old-loc new-loc))))
+(defn valid-knight-movement?
+  [state item old-loc new-loc]
+  (and (= [1 2]
+          (sort (map (comp geom/abs -) old-loc new-loc)))
+       (valid-endpoint? state item old-loc new-loc)))
 
 (defn valid-pawn-take?
   [state item old-loc new-loc]
   (let [step (get PAWN-DIRECTION (chess/piece-owner item))
         d    (map - new-loc old-loc step)]
-    ;;(println step d)
     (and (or (= [0  1] d)
              (= [0 -1] d))
          (end-in-enemy-space? state item old-loc new-loc))))
+
+(defn valid-pawn-movement?
+  [state item old-loc new-loc]
+  (let [step (get PAWN-DIRECTION (chess/piece-owner item))]
+    (or (and (= new-loc (map + old-loc step))
+             (empty-square? state new-loc))
+        (and (= new-loc (map + old-loc step step))
+             (empty-square? state new-loc)
+             (chess/first-move? item)
+             (not (slide-blocked? state item old-loc new-loc))))))
+
+(defn valid-bishop-movement?
+  [state item old-loc new-loc]
+  (and (geom/diagonal? old-loc new-loc)
+       (not (slide-blocked? state item old-loc new-loc))
+       (valid-endpoint? state item old-loc new-loc)))
+
+(defn valid-king-movement?
+  [state item old-loc new-loc]
+  (and (= 1 (geom/distance old-loc new-loc))
+       (valid-endpoint? state item old-loc new-loc)))
+
+(defn valid-queen-movement?
+  [state item old-loc new-loc]
+  (and (or (geom/horizontal? old-loc new-loc)
+           (geom/vertical? old-loc new-loc)
+           (geom/diagonal? old-loc new-loc))
+       (not (slide-blocked? state item old-loc new-loc))
+       (valid-endpoint? state item old-loc new-loc)))
+
+(defn valid-rook-movement?
+  [state item old-loc new-loc]
+  (and (or (geom/horizontal? old-loc new-loc)
+           (geom/vertical? old-loc new-loc))
+       (not (slide-blocked? state item old-loc new-loc))
+       (valid-endpoint? state item old-loc new-loc)))
 
 (defn empty-square?
   [state loc]
@@ -115,43 +151,21 @@
    "white" UP})
 
 (def MOVEMENT-POLICY
-  {"rook"   (fn [state item old-loc new-loc]
-              (and (or (geom/horizontal? old-loc new-loc)
-                       (geom/vertical? old-loc new-loc))
-                   (not (slide-blocked? state item old-loc new-loc))
-                   (valid-endpoint? state item old-loc new-loc)))
-   "queen"  (fn [state item old-loc new-loc]
-              (and (or (geom/horizontal? old-loc new-loc)
-                       (geom/vertical? old-loc new-loc)
-                       (geom/diagonal? old-loc new-loc))
-                   (not (slide-blocked? state item old-loc new-loc))
-                   (valid-endpoint? state item old-loc new-loc)))
-   "king"   (fn [state item old-loc new-loc]
-              (and (= 1 (geom/distance old-loc new-loc))
-                   (valid-endpoint? state item old-loc new-loc)))
-   "knight" (fn [state item old-loc new-loc]
-              (and (valid-knight-move? old-loc new-loc)
-                   (valid-endpoint? state item old-loc new-loc)))
+  {"rook"   valid-rook-movement?
+   "queen"  valid-queen-movement?
+   "king"   valid-king-movement?
+   "knight" valid-knight-movement?
    "pawn"   (fn [state item old-loc new-loc]
-              (let [step (get PAWN-DIRECTION (chess/piece-owner item))]
-                (or (and (= new-loc (map + old-loc step))
-                         (empty-square? state new-loc))
-                    (and (= new-loc (map + old-loc step step))
-                         (chess/first-move? item)
-                         (empty-square? state new-loc)
-                         (not (slide-blocked? state item old-loc new-loc)))
-                    (valid-pawn-take? state item old-loc new-loc))))
-   "bishop" (fn [state item old-loc new-loc]
-              (and (geom/diagonal? old-loc new-loc)
-                   (not (slide-blocked? state item old-loc new-loc))
-                   (valid-endpoint? state item old-loc new-loc)))})
+              (or (valid-pawn-movement? state item old-loc new-loc)
+                  (valid-pawn-take? state item old-loc new-loc)))
+   "bishop" valid-bishop-movement?})
 
-(def ALWAYS-VALID-POLICY (constantly true))
+;;(def ALWAYS-VALID-POLICY (constantly true))
 
 (defn can-drop?
   [state new-loc item monitor]
   (let [[old-loc] (chess/lookup-piece state item)
-        policy    (get MOVEMENT-POLICY (chess/piece-type item) ALWAYS-VALID-POLICY)]
+        policy    (get MOVEMENT-POLICY (chess/piece-type item))]
     ;;(infof "Checking if %s can be moved from %s to %s" item old-loc new-loc)
     (policy state item old-loc new-loc)))
 
