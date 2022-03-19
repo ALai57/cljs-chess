@@ -1,5 +1,6 @@
 (ns cljs-chess.chess
   (:require [cljs-chess.utils.geometry :as geom]
+            [cljs-chess.utils.generic :refer [some-fn* update-when]]
             [taoensso.timbre :refer-macros [infof]]))
 
 
@@ -75,12 +76,6 @@
   [state loc]
   (get state loc))
 
-(defn update-when
-  [m k f]
-  (if (contains? m k)
-    (update m k f)
-    m))
-
 (defn first-move?
   [piece]
   (get piece :first-move?))
@@ -94,11 +89,10 @@
   (:owner piece))
 
 (defn move-piece!
-  [state old-coords new-loc]
-  (let [piece (get @state old-coords)]
-    (infof "Moving %s from %s to %s" piece old-coords new-loc)
-    (swap! state dissoc old-coords)
-    (swap! state assoc new-loc (update-when piece :first-move? (constantly false)))))
+  [state piece old-loc new-loc]
+  (infof "Moving %s from %s to %s" piece old-loc new-loc)
+  (swap! state dissoc old-loc)
+  (swap! state assoc new-loc (update-when piece :first-move? (constantly false))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Movement policy
@@ -110,75 +104,44 @@
   {"black" DOWN
    "white" UP})
 
-(defn some-fn*
-  "A version of some-fn that accepts multiple arguments in the predicates"
-  [& ps]
-  (fn [& args]
-    (some #(apply % args) ps)))
-
-(defn path-beetween
-  [old-loc new-loc]
-  (let [step (partial map + (geom/direction old-loc new-loc))
-        n    (dec (geom/distance old-loc new-loc))]
-    (->> (step old-loc)
-         (iterate step)
-         (take n)))
-  #_(println "UNIT DIRECTION" (direction old-loc new-loc)))
-
-(defn blockers
-  [state item old-loc new-loc]
-  (let [pts (geom/path-beetween old-loc new-loc)]
-    ;;(println pts "BETWEEN" old-loc new-loc)
-    (reduce (fn [acc pt]
-              (if-let [blocker (lookup-loc state pt)]
-                (conj acc blocker)
-                acc))
-            #{}
-            pts)))
-
-(defn slide-blocked?
-  [state item old-loc new-loc]
-  (seq (blockers state item old-loc new-loc)))
-
 (defn valid-endpoint?
   [state item old-loc new-loc]
   (not= (piece-owner item)
         (piece-owner (get state new-loc))))
 
-(defn end-in-enemy-space?
-  "Does the move end in a space with an enemy?"
-  [state item old-loc new-loc]
-  (when-let [owner (piece-owner (get state new-loc))]
-    (not= (piece-owner item)
-          owner)))
-
-(defn empty-square?
-  [state loc]
-  (nil? (lookup-loc state loc)))
-
-(defn valid-knight-movement?
-  [state item old-loc new-loc]
-  (and (= [1 2]
-          (sort (map (comp geom/abs -) old-loc new-loc)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Jumping fns
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn valid-jump?
+  [valid-geom? state item old-loc new-loc]
+  (and (valid-geom? old-loc new-loc)
        (valid-endpoint? state item old-loc new-loc)))
 
-(defn valid-pawn-take?
-  [state item old-loc new-loc]
-  (let [step (get PAWN-DIRECTION (piece-owner item))
-        d    (map - new-loc old-loc step)]
-    (and (or (= [0  1] d)
-             (= [0 -1] d))
-         (end-in-enemy-space? state item old-loc new-loc))))
+(defn L-movement?
+  [old-loc new-loc]
+  (= [1 2]
+     (sort (map (comp geom/abs -) old-loc new-loc))))
 
-(defn valid-pawn-movement?
+(def valid-knight-movement?
+  (partial valid-jump? L-movement?))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Sliding fns
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn blockers
+  [state pts]
+  (reduce (fn [acc pt]
+            (if-let [blocker (lookup-loc state pt)]
+              (conj acc blocker)
+              acc))
+          #{}
+          pts))
+
+(defn slide-blocked?
   [state item old-loc new-loc]
-  (let [step (get PAWN-DIRECTION (piece-owner item))]
-    (or (and (= new-loc (map + old-loc step))
-             (empty-square? state new-loc))
-        (and (= new-loc (map + old-loc step step))
-             (empty-square? state new-loc)
-             (first-move? item)
-             (not (slide-blocked? state item old-loc new-loc))))))
+  (->> (geom/path-between old-loc new-loc)
+       (blockers state)
+       (seq)))
 
 (defn valid-slide?
   [valid-direction? state item old-loc new-loc]
@@ -205,6 +168,38 @@
                                   geom/vertical?
                                   geom/diagonal?)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Pawn fns
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn end-in-enemy-space?
+  "Does the move end in a space with an enemy?"
+  [state item old-loc new-loc]
+  (when-let [owner (piece-owner (get state new-loc))]
+    (not= (piece-owner item)
+          owner)))
+
+(defn empty-square?
+  [state loc]
+  (nil? (lookup-loc state loc)))
+
+(defn valid-pawn-take?
+  [state item old-loc new-loc]
+  (let [step (get PAWN-DIRECTION (piece-owner item))
+        d    (map - new-loc old-loc step)]
+    (and (or (= [0  1] d)
+             (= [0 -1] d))
+         (end-in-enemy-space? state item old-loc new-loc))))
+
+(defn valid-pawn-movement?
+  [state item old-loc new-loc]
+  (let [step (get PAWN-DIRECTION (piece-owner item))]
+    (or (and (= new-loc (map + old-loc step))
+             (empty-square? state new-loc))
+        (and (= new-loc (map + old-loc step step))
+             (empty-square? state new-loc)
+             (first-move? item)
+             (not (slide-blocked? state item old-loc new-loc))))))
+
 (def MOVEMENT-POLICY
   {"rook"   valid-rook-movement?
    "queen"  valid-queen-movement?
@@ -219,6 +214,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Handlers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; TODO: Extract these to more generic location
+;; TODO: Set up testing for logic
 (defn can-drop?
   [state new-loc item monitor]
   (let [[old-loc] (lookup-piece state item)
@@ -228,8 +226,7 @@
 
 (defn on-drop-handler
   [state new-loc item monitor]
-  ;; Add an additional %s to print the board state
-  (infof "Drop-handler: Dropping Item %s at Coordinate %s on Board"
-         item new-loc @state)
-  (let [[old-coords piece :as result] (lookup-piece @state item)]
-    (move-piece! state old-coords new-loc)))
+  (let [[old-loc] (lookup-piece @state item)]
+    ;; Add an additional %s in the infof to print the board state
+    ;;(infof "Drop-handler: Dropping Item %s at Coordinate %s on Board" item new-loc @state)
+    (move-piece! state item old-loc new-loc)))

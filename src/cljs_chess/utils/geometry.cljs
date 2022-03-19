@@ -34,10 +34,11 @@
     (diagonal?   old-loc new-loc) (abs (- y1 y2))
     :else 0))
 
-(defn path-beetween
+(defn path-between
   [old-loc new-loc]
   (let [step (partial map + (direction old-loc new-loc))
         n    (dec (distance old-loc new-loc))]
     (->> (step old-loc)
          (iterate step)
-         (take n))))
+         (take n)))
+  #_(println "UNIT DIRECTION" (direction old-loc new-loc)))
