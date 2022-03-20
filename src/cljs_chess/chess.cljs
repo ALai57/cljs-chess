@@ -104,8 +104,8 @@
   (:owner piece))
 
 (defn move-piece!
-  [state old-loc new-loc]
-  (when-let [piece (lookup-loc @state old-loc)]
+  [{:keys [state piece new-loc] :as proposed-move}]
+  (let [[old-loc] (lookup-piece @state piece)]
     (infof "Moving %s from %s to %s" piece old-loc new-loc)
     (swap! state dissoc old-loc)
     (swap! state assoc new-loc (update-when piece :first-move? (constantly false)))))
@@ -121,17 +121,18 @@
    "white" UP})
 
 (defn valid-endpoint?
-  [state piece old-loc new-loc]
+  [{:keys [state piece new-loc] :as proposed-move}]
   (not= (piece-owner piece)
-        (piece-owner (get state new-loc))))
+        (piece-owner (lookup-loc state new-loc))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Jumping fns
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn valid-jump?
-  [valid-geom? state piece old-loc new-loc]
-  (and (valid-geom? old-loc new-loc)
-       (valid-endpoint? state piece old-loc new-loc)))
+  [valid-geom? {:keys [state piece new-loc] :as proposed-move}]
+  (let [[old-loc] (lookup-piece state piece)]
+    (and (valid-geom? old-loc new-loc)
+         (valid-endpoint? proposed-move))))
 
 (def valid-knight-movement?
   (partial valid-jump? geom/L-movement?))
@@ -140,16 +141,18 @@
 ;; Sliding fns
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn slide-blocked?
-  [state piece old-loc new-loc]
-  (->> (geom/path-between old-loc new-loc)
-       (blockers state)
-       (seq)))
+  [{:keys [state piece new-loc] :as proposed-move}]
+  (let [[old-loc] (lookup-piece state piece)]
+    (->> (geom/path-between old-loc new-loc)
+         (blockers state)
+         (seq))))
 
 (defn valid-slide?
-  [valid-direction? state piece old-loc new-loc]
-  (and (valid-direction? old-loc new-loc)
-       (not (slide-blocked? state piece old-loc new-loc))
-       (valid-endpoint? state piece old-loc new-loc)))
+  [valid-direction? {:keys [state piece new-loc] :as proposed-move}]
+  (let [[old-loc] (lookup-piece state piece)]
+    (and (valid-direction? old-loc new-loc)
+         (not (slide-blocked? proposed-move))
+         (valid-endpoint? proposed-move))))
 
 (def single-square-move?
   (comp (partial = 1)
@@ -175,28 +178,30 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn end-in-enemy-space?
   "Does the move end in a space with an enemy?"
-  [state piece old-loc new-loc]
+  [{:keys [state piece new-loc] :as proposed-move}]
   (when-let [owner (piece-owner (get state new-loc))]
     (not= (piece-owner piece)
           owner)))
 
 (defn valid-pawn-take?
-  [state piece old-loc new-loc]
-  (let [step (get PAWN-DIRECTION (piece-owner piece))
-        d    (map - new-loc old-loc step)]
+  [{:keys [state piece new-loc] :as proposed-move}]
+  (let [[old-loc] (lookup-piece state piece)
+        step      (get PAWN-DIRECTION (piece-owner piece))
+        d         (map - new-loc old-loc step)]
     (and (or (= [0  1] d)
              (= [0 -1] d))
-         (end-in-enemy-space? state piece old-loc new-loc))))
+         (end-in-enemy-space? proposed-move))))
 
 (defn valid-pawn-movement?
-  [state piece old-loc new-loc]
-  (let [step (get PAWN-DIRECTION (piece-owner piece))]
+  [{:keys [state piece new-loc] :as proposed-move}]
+  (let [[old-loc] (lookup-piece state piece)
+        step      (get PAWN-DIRECTION (piece-owner piece))]
     (or (and (= new-loc (map + old-loc step))
              (empty-square? state new-loc))
         (and (= new-loc (map + old-loc step step))
              (empty-square? state new-loc)
              (first-move? piece)
-             (not (slide-blocked? state piece old-loc new-loc))))))
+             (not (slide-blocked? proposed-move))))))
 
 (def MOVEMENT-POLICY
   {"rook"   valid-rook-movement?
@@ -213,17 +218,19 @@
 ;; Handlers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; TODO: Set up testing for logic
 (defn can-drop?
   [state new-loc piece monitor]
-  (let [[old-loc] (lookup-piece state piece)
-        policy    (get MOVEMENT-POLICY (piece-type piece))]
+  (let [policy (get MOVEMENT-POLICY (piece-type piece))]
     ;;(infof "Checking if %s can be moved from %s to %s" piece old-loc new-loc)
-    (policy state piece old-loc new-loc)))
+    ;;         Call this "proposed-move"
+    (policy {:state   state
+             :piece   piece
+             :new-loc new-loc})))
 
 (defn on-drop-handler
   [state new-loc piece monitor]
-  (let [[old-loc] (lookup-piece @state piece)]
-    ;; Add an additional %s in the infof to print the board state
-    ;;(infof "Drop-handler: Dropping piece %s at Coordinate %s on Board" piece new-loc @state)
-    (move-piece! state old-loc new-loc)))
+  ;; Add an additional %s in the infof to print the board state
+  ;;(infof "Drop-handler: Dropping piece %s at Coordinate %s on Board" piece new-loc @state)
+  (move-piece! {:state   state
+                :piece   piece
+                :new-loc new-loc}))

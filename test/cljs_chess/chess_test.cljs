@@ -1,5 +1,6 @@
 (ns cljs-chess.chess-test
-  (:require [cljs-chess.chess :as chess :refer [BLACK-KNIGHT BLACK-PAWN BLACK-ROOK]]
+  (:require [cljs-chess.chess :as chess :refer [BLACK-KNIGHT BLACK-PAWN BLACK-ROOK
+                                                WHITE-KNIGHT WHITE-PAWN WHITE-ROOK]]
             [cljs-chess.generators.chess-generators :as cgen]
             [cljs.test :as t :refer-macros [are deftest is use-fixtures]]
             [clojure.test.check :as tc]
@@ -94,3 +95,17 @@
 
 (deftest movement-to-empty-space-test
   (tc/quick-check 100 movement-to-empty-space-spec))
+
+
+(deftest valid-endpoint?-test
+  (is (true? (chess/valid-endpoint? {:state   {[0 0] BLACK-PAWN
+                                               [0 1] WHITE-PAWN}
+                                     :piece   BLACK-PAWN
+                                     :new-loc [0 1]})))
+  (is (true? (chess/valid-endpoint? {:state   {[0 0] BLACK-PAWN}
+                                     :piece   BLACK-PAWN
+                                     :new-loc [0 1]})))
+  (is (false? (chess/valid-endpoint? {:state   {[0 0] BLACK-PAWN
+                                                [0 1] BLACK-KNIGHT}
+                                      :piece   BLACK-PAWN
+                                      :new-loc [0 1]}))))
