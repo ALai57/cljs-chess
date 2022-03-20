@@ -3,7 +3,7 @@
 *.log
 tmp/
 
-resources/public/js/compiled/*
+resources/public/js/*
 .shadow-cljs/
 public/*
 node_modules/*

@@ -43,7 +43,7 @@
                                   :http-root "resources/public/js/test"}}
             :ci      {:target :karma
                       :ns-regexp "-test$"
-                      :output-to "target/ci.js"}
+                      :output-to "resources/public/js/test/ci.js"}
             :stories {:target     :npm-module
                       :ns-regexp  "-stories$"
                       :output-dir "public/js/stories"}}}
