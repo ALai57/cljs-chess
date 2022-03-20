@@ -1,11 +1,18 @@
 (ns cljs-chess.chess-test
   (:require [cljs-chess.chess :as chess :refer [BLACK-KNIGHT BLACK-PAWN BLACK-ROOK]]
             [cljs-chess.generators.chess-generators :as cgen]
-            [cljs.test :as t :refer-macros [are deftest is]]
+            [cljs.test :as t :refer-macros [are deftest is use-fixtures]]
             [clojure.test.check :as tc]
             [clojure.test.check.generators :as gen]
             [clojure.test.check.properties :as prop]
-            [com.gfredericks.test.chuck.properties :refer-macros [for-all]]))
+            [com.gfredericks.test.chuck.properties :refer-macros [for-all]]
+            [taoensso.timbre :refer-macros [with-level]]))
+
+(use-fixtures
+  :once
+  (fn [f]
+    (with-level :warn
+      (f))))
 
 (deftest lookup-piece-test
   (are [expected piece]

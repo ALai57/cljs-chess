@@ -16,25 +16,34 @@
 
                 [arttuka/reagent-material-ui "5.0.0-0"]]
 
- :builds {:app {:target :browser
+ :dev-http {8021 "out/test"}
+ :builds   {:app {:target :browser
 
-                :output-dir "resources/public/js/compiled/cljs-chess"
-                :asset-path "js/compiled/cljs-chess"
+                  :output-dir "resources/public/js/compiled/cljs-chess"
+                  :asset-path "js/compiled/cljs-chess"
 
-                :modules          {:cljs-chess {:entries [cljs-chess.core]}}
-                :compiler-options {:static-fns          true
-                                   :infer-externs       :auto
-                                   :optimize-constants  true
-                                   :pretty-print        false
-                                   :optimization        :advanced
-                                   :strip-type-prefixes #{"cljs.pprint"}}
-                ;;:devtools   {:after-load app.main/reload!}}
+                  :modules          {:cljs-chess {:entries [cljs-chess.core]}}
+                  :compiler-options {:static-fns          true
+                                     :infer-externs       :auto
+                                     :optimize-constants  true
+                                     :pretty-print        false
+                                     :optimization        :advanced
+                                     :strip-type-prefixes #{"cljs.pprint"}}
+                  ;;:devtools   {:after-load app.main/reload!}}
 
-                ;; Shadow has a pre-built idea that every build has a dev and release configuration
-                :dev     {:closure-defines { cljs-chess.core/SOME_URL "http://172.17.0.1:8080/auth"} }
-                :release {:closure-defines { cljs-chess.core/SOME_URL "http://172.17.0.1:8080/auth"} }
-                }
-
-          :stories {:target     :npm-module
-                    :ns-regexp  "-stories$"
-                    :output-dir "public/js/stories"}}}
+                  ;; Shadow has a pre-built idea that every build has a dev and release configuration
+                  :dev     {:closure-defines { cljs-chess.core/SOME_URL "http://172.17.0.1:8080/auth"} }
+                  :release {:closure-defines { cljs-chess.core/SOME_URL "http://172.17.0.1:8080/auth"} }
+                  }
+            :test    {:target    :browser-test
+                      ;;:test-dir "test/cljs_chess"
+                      :test-dir  "resources/public/js/test"
+                      :ns-regexp "-test$"
+                      :devtools  {:http-port 8021
+                                  :http-root "resources/public/js/test"}}
+            :ci      {:target :karma
+                      :ns-regexp "-test$"
+                      :output-to "target/ci.js"}
+            :stories {:target     :npm-module
+                      :ns-regexp  "-stories$"
+                      :output-dir "public/js/stories"}}}
