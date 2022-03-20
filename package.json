@@ -42,7 +42,8 @@
     "pack": "webpack --watch",
     "storybook": "start-storybook -s ./resources/public -p 6006",
     "build-storybook": "build-storybook",
-    "test": "shadow-cljs watch test"
+    "browser-test": "shadow-cljs watch test",
+    "test": "shadow-cljs compile ci && karma start --single-run"
   },
   "keywords": [],
   "author": "",
