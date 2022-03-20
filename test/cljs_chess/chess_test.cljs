@@ -1,12 +1,11 @@
 (ns cljs-chess.chess-test
-  (:require [cljs-chess.chess :as chess :refer [BLACK-ROOK
-                                                BLACK-KNIGHT
-                                                BLACK-PAWN]]
+  (:require [cljs-chess.chess :as chess :refer [BLACK-KNIGHT BLACK-PAWN BLACK-ROOK]]
+            [cljs-chess.generators.chess-generators :as cgen]
             [cljs.test :as t :refer-macros [are deftest is]]
+            [clojure.test.check :as tc]
             [clojure.test.check.generators :as gen]
             [clojure.test.check.properties :as prop]
-            [clojure.test.check :as tc]
-            ))
+            [com.gfredericks.test.chuck.properties :refer-macros [for-all]]))
 
 (deftest lookup-piece-test
   (are [expected piece]
@@ -47,29 +46,44 @@
                           [0 2] BLACK-PAWN}
                          [[1 0] [2 0]]))))
 
-(def gen-loc
-  (gen/let [x gen/small-integer
-            y gen/small-integer]
-    [x y]))
 
-(def gen-piece
-  (gen/map gen/simple-type-printable-equatable
-           gen/simple-type-printable-equatable
-           {:max-elements 40}))
-
-(def pieces-are-moveable
-  (prop/for-all [from  gen-loc
-                 piece gen-piece
-                 to    gen-loc]
-    (let [state (atom {from piece})]
+(def movement-spec
+  (for-all [board cgen/gen-board
+            :let  [[from piece] (first board)]
+            to    (gen/such-that (partial not= from)
+                                 cgen/gen-location)]
+    (let [state (atom (dissoc board to))]
       (chess/move-piece! state from to)
-      (= {to piece} @state))))
+      (and (is (nil? (get @state from))
+               "`From` space should be vacated after moving")
+           (is (= piece (get @state to))
+               "`To` space should have the new piece after moving")))))
 
-(deftest move-piece!-spec
-  (tc/quick-check 100 pieces-are-moveable))
+(deftest movement-test
+  (tc/quick-check 100 movement-spec))
 
-(deftest move-piece!-test
-  (let [state (atom {[0 0] BLACK-ROOK})]
-    (chess/move-piece! state [0 1] [5 5])
-    (is (= {[0 0] BLACK-ROOK}
-           @state))))
+(def movement-to-occupied-space-spec
+  (prop/for-all [board cgen/gen-board]
+    (let [state (atom board)
+          [from piece1] (first board)
+          [to   piece2] (second board)]
+      (chess/move-piece! state from to)
+      (is (= (dec (count board))
+             (count @state))
+          "Should have one less piece on the board after moving to occupied space"))))
+
+(deftest movement-to-occupied-space-test
+  (tc/quick-check 100 movement-to-occupied-space-spec))
+
+(def movement-to-empty-space-spec
+  (prop/for-all [board cgen/gen-board]
+    (let [[to]      (first board)
+          [from]    (second board)
+          new-board (dissoc board to)
+          state     (atom new-board)]
+      (chess/move-piece! state from to)
+      (is (= (count new-board) (count @state))
+          "Should have same number of pieces on board after moving to empty space"))))
+
+(deftest movement-to-empty-space-test
+  (tc/quick-check 100 movement-to-empty-space-spec))
