@@ -228,9 +228,10 @@
              :new-loc new-loc})))
 
 (defn on-drop-handler
-  [state new-loc piece monitor]
+  "state-ref is a reference to state (to get the value, must deref)"
+  [state-ref new-loc piece monitor]
   ;; Add an additional %s in the infof to print the board state
   ;;(infof "Drop-handler: Dropping piece %s at Coordinate %s on Board" piece new-loc @state)
-  (move-piece! {:state   state
+  (move-piece! {:state   state-ref
                 :piece   piece
                 :new-loc new-loc}))
