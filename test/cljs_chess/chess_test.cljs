@@ -61,7 +61,9 @@
             to    (gen/such-that (partial not= from)
                                  cgen/gen-location)]
     (let [state (atom (dissoc board to))]
-      (chess/move-piece! state from to)
+      (chess/move-piece! {:state   state
+                          :piece   piece
+                          :new-loc to})
       (and (is (nil? (get @state from))
                "`From` space should be vacated after moving")
            (is (= piece (get @state to))
@@ -72,10 +74,12 @@
 
 (def movement-to-occupied-space-spec
   (prop/for-all [board cgen/gen-board]
-    (let [state (atom board)
+    (let [state         (atom board)
           [from piece1] (first board)
           [to   piece2] (second board)]
-      (chess/move-piece! state from to)
+      (chess/move-piece! {:state   state
+                          :piece   piece1
+                          :new-loc to})
       (is (= (dec (count board))
              (count @state))
           "Should have one less piece on the board after moving to occupied space"))))
@@ -85,11 +89,13 @@
 
 (def movement-to-empty-space-spec
   (prop/for-all [board cgen/gen-board]
-    (let [[to]      (first board)
-          [from]    (second board)
-          new-board (dissoc board to)
-          state     (atom new-board)]
-      (chess/move-piece! state from to)
+    (let [[to]         (first board)
+          [from piece] (second board)
+          new-board    (dissoc board to)
+          state        (atom new-board)]
+      (chess/move-piece! {:state   state
+                          :piece   piece
+                          :new-loc to})
       (is (= (count new-board) (count @state))
           "Should have same number of pieces on board after moving to empty space"))))
 
