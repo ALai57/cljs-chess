@@ -218,6 +218,8 @@
 ;; Handlers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; TODO: Turn order, castling, pawn promotion, en-passant
+;;
 (defn can-drop?
   [state new-loc piece monitor]
   (let [policy (get MOVEMENT-POLICY (piece-type piece))]
