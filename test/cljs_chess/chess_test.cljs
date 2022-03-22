@@ -10,7 +10,7 @@
 
                                                      -WN -WP -WR -WQ
                                                      xWN xWP xWR xWQ]]
-            [cljs.test :as t :refer-macros [are deftest is use-fixtures]]
+            [cljs.test :as t :refer-macros [are deftest is use-fixtures testing]]
             [clojure.test.check :as tc]
             [clojure.test.check.generators :as gen]
             [clojure.test.check.properties :as prop]
@@ -111,43 +111,69 @@
   (tc/quick-check 100 movement-to-empty-space-spec))
 
 (deftest valid-endpoint?-test
-  (is (true? (chess/valid-endpoint? (->> [[-BQ xWP ---]
-                                          [--- --- ---]
-                                          [--- --- ---]]
-                                         (->proposed-move -BQ)))))
-  (is (true? (chess/valid-endpoint? (->> [[-BQ x-- ---]
-                                          [--- --- ---]
-                                          [--- --- ---]]
-                                         (->proposed-move -BQ)))))
-  (is (false? (chess/valid-endpoint? (->> [[-BQ xBP ---]
-                                           [--- --- ---]
-                                           [--- --- ---]]
-                                          (->proposed-move -BQ))))))
+  (are [description expected board]
+    (testing description
+      (= expected (->> board
+                       (->proposed-move -BQ)
+                       (chess/valid-endpoint?))))
+
+    "Target space has piece owned by other player"
+    true [[-BQ xWP ---]
+          [--- --- ---]
+          [--- --- ---]]
+
+    "Target space empty"
+    true [[-BQ x-- ---]
+          [--- --- ---]
+          [--- --- ---]]
+
+    "Target space has piece owned by same player"
+    false [[-BQ xBP ---]
+           [--- --- ---]
+           [--- --- ---]]
+    ))
 
 (deftest valid-knight-movement?-test
-  (is (chess/valid-knight-movement? (->> [[-BN --- ---]
-                                          [--- --- x--]
-                                          [--- --- ---]]
-                                         (->proposed-move -BN))))
-  (is (chess/valid-knight-movement? (->> [[-BN --- ---]
-                                          [--- --- ---]
-                                          [--- x-- ---]]
-                                         (->proposed-move -BN))))
-  (is (false? (chess/valid-knight-movement? (->> [[-BN --- ---]
-                                                  [--- x-- ---]
-                                                  [--- --- ---]]
-                                                 (->proposed-move -BN))))))
+  (are [description expected board]
+    (testing description
+      (= expected (->> board
+                       (->proposed-move -BN)
+                       (chess/valid-knight-movement?))))
+
+    "(1) Valid L"
+    true [[-BN --- ---]
+          [--- --- x--]
+          [--- --- ---]]
+
+    "(2) Valid L"
+    true [[-BN --- ---]
+          [--- --- ---]
+          [--- x-- ---]]
+
+    "Not an L"
+    false [[-BN --- ---]
+           [--- x-- ---]
+           [--- --- ---]]))
 
 (deftest slide-blocked?-test
-  (is (false? (chess/slide-blocked? (->> [[-BQ --- ---]
-                                          [--- --- ---]
-                                          [--- --- x--]]
-                                         (->proposed-move -BQ)))))
-  (is (chess/slide-blocked? (->> [[-BQ --- ---]
-                                  [--- -BN ---]
-                                  [--- --- x--]]
-                                 (->proposed-move -BQ))))
-  (is (false? (chess/slide-blocked? (->> [[-BQ --- ---]
-                                          [--- --- -BN]
-                                          [--- --- x--]]
-                                         (->proposed-move -BQ))))))
+  (are [description expected mover board]
+    (testing description
+      (= expected (->> board
+                       (->proposed-move mover)
+                       (chess/slide-blocked?))))
+
+    "Queen move blocked by Knight"
+    true  -BQ [[-BQ --- ---]
+               [--- -BN ---]
+               [--- --- x--]]
+
+    "Queen move unblocked - no other pieces on board"
+    false -BQ [[-BQ --- ---]
+               [--- --- ---]
+               [--- --- x--]]
+
+    "Queen move unblocked by Knight"
+    false -BQ [[-BQ --- ---]
+               [--- --- -BN]
+               [--- --- x--]]
+    ))
