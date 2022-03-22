@@ -1,7 +1,15 @@
 (ns cljs-chess.chess-test
-  (:require [cljs-chess.chess :as chess :refer [BLACK-KNIGHT BLACK-PAWN BLACK-ROOK
-                                                WHITE-KNIGHT WHITE-PAWN WHITE-ROOK]]
+  (:require [cljs-chess.chess :as chess :refer [BLACK-KNIGHT BLACK-PAWN BLACK-ROOK BLACK-QUEEN
+                                                WHITE-KNIGHT WHITE-PAWN WHITE-ROOK WHITE-QUEEN]]
             [cljs-chess.generators.chess-generators :as cgen]
+            [cljs-chess.test-utils.chess-dsl :refer [->proposed-move
+                                                     --- x--
+
+                                                     -BN -BP -BR -BQ
+                                                     xBN xBP xBR xBQ
+
+                                                     -WN -WP -WR -WQ
+                                                     xWN xWP xWR xWQ]]
             [cljs.test :as t :refer-macros [are deftest is use-fixtures]]
             [clojure.test.check :as tc]
             [clojure.test.check.generators :as gen]
@@ -102,16 +110,44 @@
 (deftest movement-to-empty-space-test
   (tc/quick-check 100 movement-to-empty-space-spec))
 
-
 (deftest valid-endpoint?-test
-  (is (true? (chess/valid-endpoint? {:state   {[0 0] BLACK-PAWN
-                                               [0 1] WHITE-PAWN}
-                                     :piece   BLACK-PAWN
-                                     :new-loc [0 1]})))
-  (is (true? (chess/valid-endpoint? {:state   {[0 0] BLACK-PAWN}
-                                     :piece   BLACK-PAWN
-                                     :new-loc [0 1]})))
-  (is (false? (chess/valid-endpoint? {:state   {[0 0] BLACK-PAWN
-                                                [0 1] BLACK-KNIGHT}
-                                      :piece   BLACK-PAWN
-                                      :new-loc [0 1]}))))
+  (is (true? (chess/valid-endpoint? (->> [[-BQ xWP ---]
+                                          [--- --- ---]
+                                          [--- --- ---]]
+                                         (->proposed-move -BQ)))))
+  (is (true? (chess/valid-endpoint? (->> [[-BQ x-- ---]
+                                          [--- --- ---]
+                                          [--- --- ---]]
+                                         (->proposed-move -BQ)))))
+  (is (false? (chess/valid-endpoint? (->> [[-BQ xBP ---]
+                                           [--- --- ---]
+                                           [--- --- ---]]
+                                          (->proposed-move -BQ))))))
+
+(deftest valid-knight-movement?-test
+  (is (chess/valid-knight-movement? (->> [[-BN --- ---]
+                                          [--- --- x--]
+                                          [--- --- ---]]
+                                         (->proposed-move -BN))))
+  (is (chess/valid-knight-movement? (->> [[-BN --- ---]
+                                          [--- --- ---]
+                                          [--- x-- ---]]
+                                         (->proposed-move -BN))))
+  (is (false? (chess/valid-knight-movement? (->> [[-BN --- ---]
+                                                  [--- x-- ---]
+                                                  [--- --- ---]]
+                                                 (->proposed-move -BN))))))
+
+(deftest slide-blocked?-test
+  (is (false? (chess/slide-blocked? (->> [[-BQ --- ---]
+                                          [--- --- ---]
+                                          [--- --- x--]]
+                                         (->proposed-move -BQ)))))
+  (is (chess/slide-blocked? (->> [[-BQ --- ---]
+                                  [--- -BN ---]
+                                  [--- --- x--]]
+                                 (->proposed-move -BQ))))
+  (is (false? (chess/slide-blocked? (->> [[-BQ --- ---]
+                                          [--- --- -BN]
+                                          [--- --- x--]]
+                                         (->proposed-move -BQ))))))

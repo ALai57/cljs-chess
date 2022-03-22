@@ -145,7 +145,8 @@
   (let [[old-loc] (lookup-piece state piece)]
     (->> (geom/path-between old-loc new-loc)
          (blockers state)
-         (seq))))
+         (seq)
+         (some?))))
 
 (defn valid-slide?
   [valid-direction? {:keys [state piece new-loc] :as proposed-move}]
