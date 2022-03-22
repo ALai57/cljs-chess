@@ -12,3 +12,14 @@ For local development using Storybook
 npm run watch
 npm run storybook
 ```
+
+# Tests
+
+``` sh
+npm install karma --save-dev
+```
+
+``` sh
+npm run test
+```
+

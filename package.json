@@ -8,8 +8,6 @@
     "@storybook/addon-essentials": "6.3.12",
     "@storybook/addon-links": "6.3.12",
     "@storybook/addons": "6.3.12",
-    "@storybook/builder-webpack5": "6.3.12",
-    "@storybook/manager-webpack5": "6.3.12",
     "@storybook/react": "6.3.12",
     "@storybook/theming": "6.3.12",
     "babel-loader": "8.2.3",
@@ -17,9 +15,7 @@
     "karma-chrome-launcher": "^2.2.0",
     "karma-cljs-test": "^0.1.0",
     "process": "^0.11.10",
-    "shadow-cljs": "2.16.4",
-    "webpack": "5.64.0",
-    "webpack-cli": "^4.8.0"
+    "shadow-cljs": "2.16.4"
   },
   "dependencies": {
     "@emotion/react": "11.7.1",
@@ -39,7 +35,6 @@
   "scripts": {
     "watch": "shadow-cljs watch app stories",
     "build": "shadow-cljs release app",
-    "pack": "webpack --watch",
     "storybook": "start-storybook -s ./resources/public -p 6006",
     "build-storybook": "build-storybook",
     "browser-test": "shadow-cljs watch test",
