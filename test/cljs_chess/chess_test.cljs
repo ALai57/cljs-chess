@@ -5,11 +5,11 @@
             [cljs-chess.test-utils.chess-dsl :refer [->proposed-move
                                                      --- x--
 
-                                                     -BN -BP -BR -BQ
-                                                     xBN xBP xBR xBQ
+                                                     -BN -BP -BR -BQ -BB
+                                                     xBN xBP xBR xBQ xBB
 
-                                                     -WN -WP -WR -WQ
-                                                     xWN xWP xWR xWQ]]
+                                                     -WN -WP -WR -WQ -WB
+                                                     xWN xWP xWR xWQ xWB]]
             [cljs.test :as t :refer-macros [are deftest is use-fixtures testing]]
             [clojure.test.check :as tc]
             [clojure.test.check.generators :as gen]
@@ -272,5 +272,33 @@
     "Pawn cannot take forwards"
     false [[--- -BP ---]
            [--- xWP ---]
+           [--- --- ---]]
+    ))
+
+(deftest valid-bishop-movement?-test
+  (are [description expected board]
+    (testing description
+      (= expected (->> board
+                       (->proposed-move -BB)
+                       (chess/valid-bishop-movement?))))
+
+    "Bishop can move diagonal"
+    true  [[-BB --- ---]
+           [--- --- ---]
+           [--- --- x--]]
+
+    "Bishop cannot move horizontal"
+    false [[-BB --- x--]
+           [--- --- ---]
+           [--- --- ---]]
+
+    "Bishop cannot move vertical"
+    false [[-BB --- ---]
+           [--- --- ---]
+           [x-- --- ---]]
+
+    "Bishop cannot move on a non-diagonal, non-horizontal or non-vertical"
+    false [[-BB --- ---]
+           [--- --- x--]
            [--- --- ---]]
     ))
