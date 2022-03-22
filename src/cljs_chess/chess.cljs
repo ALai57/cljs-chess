@@ -150,10 +150,10 @@
 
 (defn valid-slide?
   [valid-direction? {:keys [state piece new-loc] :as proposed-move}]
-  (let [[old-loc] (lookup-piece state piece)]
-    (and (valid-direction? old-loc new-loc)
-         (not (slide-blocked? proposed-move))
-         (valid-endpoint? proposed-move))))
+  (true? (let [[old-loc] (lookup-piece state piece)]
+           (and (valid-direction? old-loc new-loc)
+                (not (slide-blocked? proposed-move))
+                (valid-endpoint? proposed-move)))))
 
 (def single-square-move?
   (comp (partial = 1)
@@ -195,14 +195,14 @@
 
 (defn valid-pawn-movement?
   [{:keys [state piece new-loc] :as proposed-move}]
-  (let [[old-loc] (lookup-piece state piece)
-        step      (get PAWN-DIRECTION (piece-owner piece))]
-    (or (and (= new-loc (map + old-loc step))
-             (empty-square? state new-loc))
-        (and (= new-loc (map + old-loc step step))
-             (empty-square? state new-loc)
-             (first-move? piece)
-             (not (slide-blocked? proposed-move))))))
+  (true? (let [[old-loc] (lookup-piece state piece)
+               step      (get PAWN-DIRECTION (piece-owner piece))]
+           (or (and (= new-loc (map + old-loc step))
+                    (empty-square? state new-loc))
+               (and (= new-loc (map + old-loc step step))
+                    (empty-square? state new-loc)
+                    (first-move? piece)
+                    (not (slide-blocked? proposed-move)))))))
 
 (def MOVEMENT-POLICY
   {"rook"   valid-rook-movement?

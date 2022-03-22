@@ -177,3 +177,100 @@
                [--- --- -BN]
                [--- --- x--]]
     ))
+
+(deftest valid-queen-movement?-test
+  (are [description expected board]
+    (testing description
+      (= expected (->> board
+                       (->proposed-move -BQ)
+                       (chess/valid-queen-movement?))))
+
+    "Queen can move diagonal"
+    true  [[-BQ --- ---]
+           [--- --- ---]
+           [--- --- x--]]
+
+    "Queen can move horizontal"
+    true  [[-BQ --- x--]
+           [--- --- ---]
+           [--- --- ---]]
+
+    "Queen can move vertical"
+    true  [[-BQ --- ---]
+           [--- --- ---]
+           [x-- --- ---]]
+
+    "Queen cannot move on a non-diagonal, non-horizontal or non-vertical"
+    false [[-BQ --- ---]
+           [--- --- x--]
+           [--- --- ---]]
+    ))
+
+(deftest valid-rook-movement?-test
+  (are [description expected board]
+    (testing description
+      (= expected (->> board
+                       (->proposed-move -BR)
+                       (chess/valid-rook-movement?))))
+
+    "Rook can move horizontal"
+    true  [[-BR --- x--]
+           [--- --- ---]
+           [--- --- ---]]
+
+    "Rook can move vertical"
+    true  [[-BR --- ---]
+           [--- --- ---]
+           [x-- --- ---]]
+
+    "Rook cannot move diagonal"
+    false [[-BR --- ---]
+           [--- --- ---]
+           [--- --- x--]]
+
+    "Rook cannot move on a non-diagonal, non-horizontal or non-vertical"
+    false [[-BR --- ---]
+           [--- --- x--]
+           [--- --- ---]]
+    ))
+
+(deftest valid-pawn-movement?-test
+  (are [description expected board]
+    (testing description
+      (= expected (->> board
+                       (->proposed-move -BP)
+                       (chess/valid-pawn-movement?))))
+
+    "Pawn can move 1 space forward"
+    true  [[--- -BP ---]
+           [--- x-- ---]
+           [--- --- ---]]
+
+    "Since it's not the first move, Pawn cannot move 2 spaces forward"
+    false [[--- -BP ---]
+           [--- --- ---]
+           [--- x-- ---]]
+    ))
+
+(deftest valid-pawn-take?-test
+  (are [description expected board]
+    (testing description
+      (= expected (->> board
+                       (->proposed-move -BP)
+                       (chess/valid-pawn-take?))))
+
+    "(1) Pawn can take sideways"
+    true  [[--- -BP ---]
+           [xWP --- ---]
+           [--- --- ---]]
+
+    "(2) Pawn can take sideways"
+    true  [[--- -BP ---]
+           [--- --- xWP]
+           [--- --- ---]]
+
+    "Pawn cannot take forwards"
+    false [[--- -BP ---]
+           [--- xWP ---]
+           [--- --- ---]]
+    ))
