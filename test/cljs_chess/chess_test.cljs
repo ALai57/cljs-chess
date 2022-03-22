@@ -269,6 +269,11 @@
            [--- --- xWP]
            [--- --- ---]]
 
+    "Pawn can only take sideways in the forward direction"
+    false [[--- --- ---]
+           [xWP --- ---]
+           [--- -BP ---]]
+
     "Pawn cannot take forwards"
     false [[--- -BP ---]
            [--- xWP ---]
