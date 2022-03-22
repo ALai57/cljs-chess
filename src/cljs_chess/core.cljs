@@ -1,16 +1,14 @@
 (ns cljs-chess.core
-    (:require-macros [secretary.core :refer [defroute]])
-    (:require [goog.events :as events]
-              [reagent.dom :refer [render]]
-              [re-frame.core :refer [dispatch dispatch-sync]]
-              [secretary.core :as secretary]
-              [cljs-chess.events.core] ;; required to make the compiler
-              [cljs-chess.subs]   ;; load them (see docs/App-Structure.md)
-              [cljs-chess.views]
-              ;;[devtools.core :as devtools]
-              )
-    (:import [goog History]
-             [goog.history EventType]))
+  (:require-macros [secretary.core :refer [defroute]])
+  (:require [goog.events :as events]
+            [reagent.dom :refer [render]]
+            [re-frame.core :refer [dispatch dispatch-sync]]
+            [secretary.core :as secretary]
+            [cljs-chess.views]
+            ;;[devtools.core :as devtools]
+            )
+  (:import [goog History]
+           [goog.history EventType]))
 
 ;; Used for initialization
 (dispatch-sync [:initialize-db])
@@ -21,10 +19,7 @@
 
 ;; -- Routes and History ------------------------------------------------------
 
-(defroute "/" []
-  (dispatch [:set-active-panel :home]))
-(defroute "/:path" [path]
-  (dispatch [:set-active-panel (keyword path)]))
+(defroute "/" [])
 
 (def history
   (doto (History.)
