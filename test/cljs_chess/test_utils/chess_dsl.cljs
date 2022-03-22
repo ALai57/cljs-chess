@@ -3,6 +3,7 @@
                                       WHITE-KNIGHT WHITE-PAWN WHITE-ROOK WHITE-QUEEN WHITE-BISHOP]]))
 
 
+
 ;; Used to indicate a   Used to indicate a piece that is also a
 ;;  piece that is not    the target square for a movement
 ;;  a target square
@@ -18,6 +19,7 @@
 (def -WQ WHITE-QUEEN)  (def xWQ (with-meta -WQ {:target? true}))
 (def -WB BLACK-BISHOP) (def xWB (with-meta -WB {:target? true}))
 
+;; Empty square        ;; Empty square that is the target of a move
 (def --- {})           (def x-- (with-meta --- {:target? true}))
 
 (defn target?
@@ -25,6 +27,22 @@
   (true? (:target? (meta piece))))
 
 (defn ->proposed-move
+  "Translates between a Chess DSL and a internal representation of a proposed-move.
+  Used to make it easier to represent chess moves visually and translate them into tests.
+
+  Some examples:
+  \"Move Black Pawn at [0 1], to [1 1] (which currently has White Pawn)\"
+
+  (->proposed-move -BP [[--- -BP ---]
+                        [--- xWP ---]
+                        [--- --- ---]])
+
+
+  \"Move Black Queen at [0 1], to [2 1] (which is currently empty)\"
+
+  (->proposed-move -BP [[--- -BQ ---]
+                        [--- --- ---]
+                        [--- x-- ---]])"
   [mover board]
   (reduce (fn [acc [y x]]
             (let [piece (get-in board [y x])]
