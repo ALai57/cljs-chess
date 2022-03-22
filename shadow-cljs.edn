@@ -46,4 +46,4 @@
                       :output-to "resources/public/js/test/ci.js"}
             :stories {:target     :npm-module
                       :ns-regexp  "-stories$"
-                      :output-dir "public/js/stories"}}}
+                      :output-dir "resources/public/js/stories"}}}
