@@ -1,7 +1,8 @@
 # cljs-chess
 
-A Drag and Drop Chess app in CLJS
 ![](https://github.com/ALai57/cljs-chess/blob/main/resources/cljs-chess-2022-03-22.gif)
+  
+A Drag and Drop Chess app in CLJS
 
 # Installation
 ## Clojurescript
