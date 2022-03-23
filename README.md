@@ -1,9 +1,17 @@
 # cljs-chess
 
-Some description
+A Drag and Drop Chess app in CLJS
+![](https://github.com/ALai57/cljs-chess/blob/main/resources/cljs-chess-2022-03-22.gif)
 
 # Installation
 ## Clojurescript
+
+# Running the app
+```
+npm install
+npm run watch
+open resources/public/index.html
+```
 
 # Development
 For local development using Storybook
