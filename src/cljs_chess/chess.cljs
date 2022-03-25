@@ -138,7 +138,10 @@
     (swap! state dissoc old-loc)
     (swap! state assoc
            new-loc        (assoc piece :moved? true)
-           :active-player (next-player (piece-owner piece)))))
+           :active-player (next-player (piece-owner piece)))
+    #_(cond
+        (promotion? proposed-move) (promote-pawn! proposed-move)
+        (castle? proposed-move)    (castle-rook! proposed-move))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Movement policy
@@ -218,6 +221,15 @@
     [TWO-SQUARES-RIGHT "black"] (lookup-loc state [0 7])
     nil))
 
+(defn castling-blocked?
+  [{:keys [state piece new-loc] :as proposed-move}]
+  (let [[old-loc] (lookup-piece state piece)]
+    (->> (geom/path-between old-loc new-loc)
+         (butlast)
+         (blockers state)
+         (seq)
+         (some?))))
+
 (defn valid-castle?
   [{:keys [state piece new-loc] :as proposed-move}]
   {:pre [(king? piece)]}
@@ -231,8 +243,8 @@
     (and (valid-castle-movement? proposed-move)
          (first-move? king)
          (first-move? rook)
-         #_(not (castling-blocked? king rook))
-         #_(not (check? (king-path king rook))))))
+         (not (castling-blocked? proposed-move))
+         #_(not-any? check? (castle-states proposed-move)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Pawn fns
@@ -287,7 +299,7 @@
     (= (piece-owner piece) active-player)
     true))
 
-(def TURN-POLICY
+(def turn-policy
   allowed-owner?)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -301,7 +313,7 @@
   (let [movement-policy (get MOVEMENT-POLICY (piece-type piece))]
     ;;(infof "Checking if %s can be moved from %s to %s" piece old-loc new-loc)
     ;;         Call this "proposed-move"
-    (and (TURN-POLICY state piece)
+    (and (turn-policy state piece)
          (movement-policy {:state   state
                            :piece   piece
                            :new-loc new-loc}))))
