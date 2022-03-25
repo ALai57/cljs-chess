@@ -34,6 +34,10 @@
     (diagonal?   old-loc new-loc) (abs (- y1 y2))
     :else 0))
 
+(defn delta
+  [new-loc old-loc]
+  (map - new-loc old-loc))
+
 (defn path-between
   [old-loc new-loc]
   (let [step (partial map + (direction old-loc new-loc))

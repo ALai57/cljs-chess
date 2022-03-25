@@ -27,41 +27,55 @@
 (def WHITE-PAWN {:piece "pawn" :owner "white"})
 
 (def STARTING-CHESS-BOARD
-  {[0 0] (assoc BLACK-ROOK :id "1" :first-move? true)
+  {[0 0] (assoc BLACK-ROOK :id "1")
    [0 1] (assoc BLACK-KNIGHT :id "1")
    [0 2] (assoc BLACK-BISHOP :id "1")
-   [0 3] (assoc BLACK-KING :id "1" :first-move? true)
+   [0 3] (assoc BLACK-KING :id "1")
    [0 4] (assoc BLACK-QUEEN :id "1")
    [0 5] (assoc BLACK-BISHOP :id "2")
    [0 6] (assoc BLACK-KNIGHT :id "2")
-   [0 7] (assoc BLACK-ROOK :id "2" :first-move? true)
+   [0 7] (assoc BLACK-ROOK :id "2")
 
-   [1 0] (assoc BLACK-PAWN :id "1" :first-move? true)
-   [1 1] (assoc BLACK-PAWN :id "2" :first-move? true)
-   [1 2] (assoc BLACK-PAWN :id "3" :first-move? true)
-   [1 3] (assoc BLACK-PAWN :id "4" :first-move? true)
-   [1 4] (assoc BLACK-PAWN :id "5" :first-move? true)
-   [1 5] (assoc BLACK-PAWN :id "6" :first-move? true)
-   [1 6] (assoc BLACK-PAWN :id "7" :first-move? true)
-   [1 7] (assoc BLACK-PAWN :id "8" :first-move? true)
+   [1 0] (assoc BLACK-PAWN :id "1")
+   [1 1] (assoc BLACK-PAWN :id "2")
+   [1 2] (assoc BLACK-PAWN :id "3")
+   [1 3] (assoc BLACK-PAWN :id "4")
+   [1 4] (assoc BLACK-PAWN :id "5")
+   [1 5] (assoc BLACK-PAWN :id "6")
+   [1 6] (assoc BLACK-PAWN :id "7")
+   [1 7] (assoc BLACK-PAWN :id "8")
 
-   [6 0] (assoc WHITE-PAWN :id "1" :first-move? true)
-   [6 1] (assoc WHITE-PAWN :id "2" :first-move? true)
-   [6 2] (assoc WHITE-PAWN :id "3" :first-move? true)
-   [6 3] (assoc WHITE-PAWN :id "4" :first-move? true)
-   [6 4] (assoc WHITE-PAWN :id "5" :first-move? true)
-   [6 5] (assoc WHITE-PAWN :id "6" :first-move? true)
-   [6 6] (assoc WHITE-PAWN :id "7" :first-move? true)
-   [6 7] (assoc WHITE-PAWN :id "8" :first-move? true)
+   [6 0] (assoc WHITE-PAWN :id "1")
+   [6 1] (assoc WHITE-PAWN :id "2")
+   [6 2] (assoc WHITE-PAWN :id "3")
+   [6 3] (assoc WHITE-PAWN :id "4")
+   [6 4] (assoc WHITE-PAWN :id "5")
+   [6 5] (assoc WHITE-PAWN :id "6")
+   [6 6] (assoc WHITE-PAWN :id "7")
+   [6 7] (assoc WHITE-PAWN :id "8")
 
-   [7 0] (assoc WHITE-ROOK :id "1" :first-move? true)
+   [7 0] (assoc WHITE-ROOK :id "1")
    [7 1] (assoc WHITE-KNIGHT :id "1")
    [7 2] (assoc WHITE-BISHOP :id "1")
-   [7 3] (assoc WHITE-KING :id "1" :first-move? true)
+   [7 3] (assoc WHITE-KING :id "1")
    [7 4] (assoc WHITE-QUEEN :id "1")
    [7 5] (assoc WHITE-BISHOP :id "2")
    [7 6] (assoc WHITE-KNIGHT :id "2")
-   [7 7] (assoc WHITE-ROOK :id "2" :first-move? true)})
+   [7 7] (assoc WHITE-ROOK :id "2")})
+
+(def TURN-ORDER
+  {"black" "white"
+   "white" "black"})
+
+(def UP [-1 0])
+(def DOWN [1 0])
+(def TWO-SQUARES-LEFT  [0 -2])
+(def TWO-SQUARES-RIGHT [0  2])
+
+(def PAWN-DIRECTION
+  {"black" DOWN
+   "white" UP})
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helpers
@@ -73,6 +87,8 @@
   (first (filter (comp (partial = piece)
                        second)
                  state)))
+
+(def where-am-i (comp first lookup-piece))
 
 (defn lookup-loc
   [state loc]
@@ -91,10 +107,6 @@
           pts))
 
 ;; Pieces
-(defn first-move?
-  [piece]
-  (:first-move? piece))
-
 (defn piece-type
   [piece]
   (:piece piece))
@@ -103,9 +115,17 @@
   [piece]
   (:owner piece))
 
-(def TURN-ORDER
-  {"black" "white"
-   "white" "black"})
+(defn moved?
+  [piece]
+  (:moved? piece))
+
+(defn first-move?
+  [piece]
+  (and piece (not (moved? piece))))
+
+(defn king?
+  [piece]
+  (= "king" (piece-type piece)))
 
 (defn next-player
   [x]
@@ -116,19 +136,13 @@
   (let [[old-loc] (lookup-piece @state piece)]
     (infof "Moving %s from %s to %s" piece old-loc new-loc)
     (swap! state dissoc old-loc)
-    (swap! state assoc new-loc (update-when piece :first-move? (constantly false)))
-    (swap! state assoc :active-player (next-player (piece-owner piece)))))
+    (swap! state assoc
+           new-loc        (assoc piece :moved? true)
+           :active-player (next-player (piece-owner piece)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Movement policy
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(def UP [-1 0])
-(def DOWN [1 0])
-
-(def PAWN-DIRECTION
-  {"black" DOWN
-   "white" UP})
-
 (defn valid-endpoint?
   [{:keys [state piece new-loc] :as proposed-move}]
   (not= (piece-owner piece)
@@ -183,6 +197,43 @@
                                   geom/vertical?
                                   geom/diagonal?)))
 
+(defn valid-castle-movement?
+  [{:keys [state piece new-loc] :as proposed-move}]
+  {:pre [(king? piece)]}
+  (let [delta (geom/delta new-loc (where-am-i state piece))]
+    (or (= [0  2] delta)
+        (= [0 -2] delta))))
+
+(defn lookup-castling-rook
+  [{:keys [state piece new-loc] :as proposed-move}]
+  {:pre [(king? piece)]}
+  #_(infof "%s %s" [(geom/delta new-loc (where-am-i state piece))
+                    (piece-owner piece)]
+           (lookup-loc state [7 7]))
+  (case [(geom/delta new-loc (where-am-i state piece))
+         (piece-owner piece)]
+    [TWO-SQUARES-LEFT  "white"] (lookup-loc state [7 0])
+    [TWO-SQUARES-RIGHT "white"] (lookup-loc state [7 7])
+    [TWO-SQUARES-LEFT  "black"] (lookup-loc state [0 0])
+    [TWO-SQUARES-RIGHT "black"] (lookup-loc state [0 7])
+    nil))
+
+(defn valid-castle?
+  [{:keys [state piece new-loc] :as proposed-move}]
+  {:pre [(king? piece)]}
+  (let [king piece
+        rook (lookup-castling-rook proposed-move)]
+    #_(infof "Castling rook %s" rook)
+    #_(infof "Valid-castle-movement? %s" (valid-castle-movement? proposed-move))
+    #_(infof "First king movement? %s First Rook movement? %s"
+             (first-move? king)
+             (first-move? rook))
+    (and (valid-castle-movement? proposed-move)
+         (first-move? king)
+         (first-move? rook)
+         #_(not (castling-blocked? king rook))
+         #_(not (check? (king-path king rook))))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Pawn fns
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -216,7 +267,8 @@
 (def MOVEMENT-POLICY
   {"rook"   valid-rook-movement?
    "queen"  valid-queen-movement?
-   "king"   valid-king-movement?
+   "king"   (some-fn* valid-king-movement?
+                      valid-castle?)
    "knight" valid-knight-movement?
    "pawn"   (some-fn* valid-pawn-movement?
                       valid-pawn-take?)
@@ -235,21 +287,21 @@
     (= (piece-owner piece) active-player)
     true))
 
-(def turn-policy
+(def TURN-POLICY
   allowed-owner?)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Handlers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; TODO: Turn order, castling, pawn promotion, en-passant
+;; TODO: Castling, pawn promotion, en-passant, check?, turn color indicator
 ;;
 (defn can-drop?
   [state new-loc piece monitor]
   (let [movement-policy (get MOVEMENT-POLICY (piece-type piece))]
     ;;(infof "Checking if %s can be moved from %s to %s" piece old-loc new-loc)
     ;;         Call this "proposed-move"
-    (and (turn-policy state piece)
+    (and (TURN-POLICY state piece)
          (movement-policy {:state   state
                            :piece   piece
                            :new-loc new-loc}))))
