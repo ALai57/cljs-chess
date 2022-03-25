@@ -103,12 +103,21 @@
   [piece]
   (:owner piece))
 
+(def TURN-ORDER
+  {"black" "white"
+   "white" "black"})
+
+(defn next-player
+  [x]
+  (get TURN-ORDER x))
+
 (defn move-piece!
   [{:keys [state piece new-loc] :as proposed-move}]
   (let [[old-loc] (lookup-piece @state piece)]
     (infof "Moving %s from %s to %s" piece old-loc new-loc)
     (swap! state dissoc old-loc)
-    (swap! state assoc new-loc (update-when piece :first-move? (constantly false)))))
+    (swap! state assoc new-loc (update-when piece :first-move? (constantly false)))
+    (swap! state assoc :active-player (next-player (piece-owner piece)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Movement policy
@@ -215,6 +224,20 @@
 
 (def ALWAYS-VALID-POLICY (constantly true))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Turn policy
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn allowed-owner?
+  [{:keys [active-player]} piece]
+  ;;(infof "Attempting to move: %s Current active player: %s" piece active-player)
+  (if active-player
+    (= (piece-owner piece) active-player)
+    true))
+
+(def turn-policy
+  allowed-owner?)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Handlers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -223,12 +246,13 @@
 ;;
 (defn can-drop?
   [state new-loc piece monitor]
-  (let [policy (get MOVEMENT-POLICY (piece-type piece))]
+  (let [movement-policy (get MOVEMENT-POLICY (piece-type piece))]
     ;;(infof "Checking if %s can be moved from %s to %s" piece old-loc new-loc)
     ;;         Call this "proposed-move"
-    (policy {:state   state
-             :piece   piece
-             :new-loc new-loc})))
+    (and (turn-policy state piece)
+         (movement-policy {:state   state
+                           :piece   piece
+                           :new-loc new-loc}))))
 
 (defn on-drop-handler
   "state-ref is a reference to state (to get the value, must deref)"
