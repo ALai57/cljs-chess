@@ -1,6 +1,8 @@
 (ns cljs-chess.test-utils.chess-dsl
-  (:require [cljs-chess.chess :refer [BLACK-KNIGHT BLACK-PAWN BLACK-ROOK BLACK-QUEEN BLACK-BISHOP
-                                      WHITE-KNIGHT WHITE-PAWN WHITE-ROOK WHITE-QUEEN WHITE-BISHOP]]))
+  (:require
+   [cljs-chess.chess :refer
+    [BLACK-KNIGHT BLACK-PAWN BLACK-ROOK BLACK-QUEEN BLACK-BISHOP BLACK-KING
+     WHITE-KNIGHT WHITE-PAWN WHITE-ROOK WHITE-QUEEN WHITE-BISHOP WHITE-KING]]))
 
 
 
@@ -12,12 +14,14 @@
 (def -BR BLACK-ROOK)   (def xBR (with-meta -BR {:target? true}))
 (def -BQ BLACK-QUEEN)  (def xBQ (with-meta -BQ {:target? true}))
 (def -BB BLACK-BISHOP) (def xBB (with-meta -BB {:target? true}))
+(def -BK BLACK-KING)   (def xBK (with-meta -BK {:target? true}))
 
 (def -WN WHITE-KNIGHT) (def xWN (with-meta -WN {:target? true}))
 (def -WP WHITE-PAWN)   (def xWP (with-meta -WP {:target? true}))
 (def -WR WHITE-ROOK)   (def xWR (with-meta -WR {:target? true}))
 (def -WQ WHITE-QUEEN)  (def xWQ (with-meta -WQ {:target? true}))
-(def -WB BLACK-BISHOP) (def xWB (with-meta -WB {:target? true}))
+(def -WB WHITE-BISHOP) (def xWB (with-meta -WB {:target? true}))
+(def -WK WHITE-KING)   (def xWK (with-meta -WK {:target? true}))
 
 ;; Empty square        ;; Empty square that is the target of a move
 (def --- {})           (def x-- (with-meta --- {:target? true}))

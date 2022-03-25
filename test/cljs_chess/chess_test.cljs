@@ -5,11 +5,11 @@
             [cljs-chess.test-utils.chess-dsl :refer [->proposed-move
                                                      --- x--
 
-                                                     -BN -BP -BR -BQ -BB
-                                                     xBN xBP xBR xBQ xBB
+                                                     -BN -BP -BR -BQ -BB -BK
+                                                     xBN xBP xBR xBQ xBB xBK
 
-                                                     -WN -WP -WR -WQ -WB
-                                                     xWN xWP xWR xWQ xWB]]
+                                                     -WN -WP -WR -WQ -WB -WK
+                                                     xWN xWP xWR xWQ xWB xWK]]
             [cljs.test :as t :refer-macros [are deftest is use-fixtures testing]]
             [clojure.test.check :as tc]
             [clojure.test.check.generators :as gen]
@@ -306,4 +306,30 @@
     false [[-BB --- ---]
            [--- --- x--]
            [--- --- ---]]
+    ))
+
+(deftest check?-test
+  (testing "check? makes sense for kings"
+    (is (any? (chess/check? {:piece "king"} {}))))
+  (testing "check? doesn't make sense for non-kings"
+    (is (thrown? js/Error (chess/check? {:piece "rook"} {})))))
+
+(deftest check?-bishop-test
+  (are [description expected board]
+    (testing description
+      (= expected (->> board
+                       (->proposed-move -BB)
+                       (:state)
+                       (chess/check? -WK))))
+
+    "Bishop cannot check vertically"
+    false [[-BB --- ---]
+           [--- --- ---]
+           [-WK --- ---]]
+
+    "Bishop can check diagonally"
+    true  [[-BB --- ---]
+           [--- --- ---]
+           [--- --- -WK]]
+
     ))

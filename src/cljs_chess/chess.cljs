@@ -326,3 +326,26 @@
   (move-piece! {:state   state-ref
                 :piece   piece
                 :new-loc new-loc}))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Check
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn threatened?
+  [state target-piece aggressor-piece]
+  (can-drop? state (where-am-i state target-piece) aggressor-piece nil))
+
+(defn get-pieces
+  [state]
+  (map second state))
+
+(def truthy? identity)
+
+(defn check?
+  [piece state]
+  {:pre [(king? piece)]}
+  (->> state
+       (get-pieces)
+       (map (partial threatened? state piece))
+       (some truthy?)
+       (boolean)))
