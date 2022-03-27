@@ -1,6 +1,6 @@
 (ns cljs-chess.utils.chess.board-test
   (:require [cljs-chess.utils.chess.board :as chess-board]
-            [cljs-chess.chess :as chess :refer [BLACK-KNIGHT BLACK-PAWN BLACK-ROOK BLACK-QUEEN
+            [cljs-chess.chess-constants :refer [BLACK-KNIGHT BLACK-PAWN BLACK-ROOK BLACK-QUEEN
                                                 WHITE-KNIGHT WHITE-PAWN WHITE-ROOK WHITE-QUEEN]]
             [cljs.test :as t :refer-macros [are deftest is use-fixtures testing]]
             [taoensso.timbre :refer-macros [with-level]]))

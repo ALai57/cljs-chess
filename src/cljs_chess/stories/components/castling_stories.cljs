@@ -1,8 +1,9 @@
 (ns cljs-chess.stories.components.castling-stories
-  (:require [cljs-chess.components.drag-and-drop-board :as dnd-board]
-            [cljs-chess.components.chess-piece :as chess-piece]
-            [cljs-chess.chess :as chess :refer [BLACK-ROOK BLACK-KING
+  (:require [cljs-chess.chess :as chess]
+            [cljs-chess.chess-constants :refer [BLACK-ROOK BLACK-KING
                                                 WHITE-ROOK WHITE-KING]]
+            [cljs-chess.components.chess-piece :as chess-piece]
+            [cljs-chess.components.drag-and-drop-board :as dnd-board]
             [cljs-chess.stories.helper :as helper]
             [reagent.core :as reagent]))
 

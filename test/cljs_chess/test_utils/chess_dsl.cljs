@@ -1,6 +1,6 @@
 (ns cljs-chess.test-utils.chess-dsl
   (:require
-   [cljs-chess.chess :refer
+   [cljs-chess.chess-constants :refer
     [BLACK-KNIGHT BLACK-PAWN BLACK-ROOK BLACK-QUEEN BLACK-BISHOP BLACK-KING
      WHITE-KNIGHT WHITE-PAWN WHITE-ROOK WHITE-QUEEN WHITE-BISHOP WHITE-KING]]))
 

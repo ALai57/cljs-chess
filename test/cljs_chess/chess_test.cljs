@@ -1,6 +1,5 @@
 (ns cljs-chess.chess-test
-  (:require [cljs-chess.chess :as chess :refer [BLACK-KNIGHT BLACK-PAWN BLACK-ROOK BLACK-QUEEN
-                                                WHITE-KNIGHT WHITE-PAWN WHITE-ROOK WHITE-QUEEN]]
+  (:require [cljs-chess.chess :as chess]
             [cljs-chess.generators.chess-generators :as cgen]
             [cljs-chess.test-utils.chess-dsl :refer [->proposed-move
                                                      --- x--

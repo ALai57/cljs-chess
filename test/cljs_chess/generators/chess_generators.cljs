@@ -1,5 +1,5 @@
 (ns cljs-chess.generators.chess-generators
-  (:require [cljs-chess.chess :as chess]
+  (:require [cljs-chess.chess-constants :refer [STARTING-CHESS-BOARD]]
             [clojure.test.check.generators :as gen]))
 
 (def gen-location
@@ -11,10 +11,10 @@
            {:max-elements 40}))
 
 (def gen-piece-type
-  (gen/elements (set (map :piece (vals chess/STARTING-CHESS-BOARD)))))
+  (gen/elements (set (map :piece (vals STARTING-CHESS-BOARD)))))
 
 (def gen-owner
-  (gen/elements (set (map :owner (vals chess/STARTING-CHESS-BOARD)))))
+  (gen/elements (set (map :owner (vals STARTING-CHESS-BOARD)))))
 
 (def gen-chess-piece
   (gen/hash-map :piece gen-piece-type

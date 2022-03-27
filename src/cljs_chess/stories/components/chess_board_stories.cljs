@@ -1,7 +1,8 @@
 (ns cljs-chess.stories.components.chess-board-stories
-  (:require [cljs-chess.components.drag-and-drop-board :as dnd-board]
+  (:require [cljs-chess.chess :as chess]
+            [cljs-chess.chess-constants :refer [STARTING-CHESS-BOARD]]
             [cljs-chess.components.chess-piece :as chess-piece]
-            [cljs-chess.chess :as chess :refer [STARTING-CHESS-BOARD]]
+            [cljs-chess.components.drag-and-drop-board :as dnd-board]
             [cljs-chess.stories.helper :as helper]
             [reagent.core :as reagent]))
 
@@ -11,7 +12,7 @@
                      :args      {:rows 8, :cols 8, :tag "example"}}))
 
 (def state
-  (reagent/atom STARTING-CHESS-BOARD))
+  (reagent/atom {:board STARTING-CHESS-BOARD}))
 
 (defn drag-and-drop-board
   "This must be present. Don't understand why, but it doesn't work without it"
