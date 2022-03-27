@@ -81,6 +81,8 @@
 ;; Helpers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(def truthy? identity)
+
 ;; State
 (defn lookup-piece
   [state piece]
@@ -121,7 +123,7 @@
 
 (defn first-move?
   [piece]
-  (and piece (not (moved? piece))))
+  (boolean (and piece (not (moved? piece)))))
 
 (defn king?
   [piece]
@@ -229,6 +231,19 @@
          (blockers state)
          (seq)
          (some?))))
+
+(defn castle-states
+  [{:keys [state piece new-loc] :as proposed-move}]
+  {:pre [(king? piece)]}
+  (let [king-loc (where-am-i state piece)
+        locs     (geom/path-between king-loc new-loc)]
+    (map (fn [loc]
+           (-> state
+               (dissoc king-loc)
+               (assoc loc piece)))
+         (concat locs
+                 [new-loc
+                  king-loc]))))
 
 (defn valid-castle?
   [{:keys [state piece new-loc] :as proposed-move}]
@@ -338,8 +353,6 @@
 (defn get-pieces
   [state]
   (map second state))
-
-(def truthy? identity)
 
 (defn check?
   [piece state]

@@ -333,3 +333,46 @@
            [--- --- -WK]]
 
     ))
+
+(deftest check?-rook-test
+  (are [description expected board]
+    (testing description
+      (= expected (->> board
+                       (->proposed-move -BR)
+                       (:state)
+                       (chess/check? -WK))))
+
+    "Rook can check vertically"
+    true [[-BR --- ---]
+          [--- --- ---]
+          [-WK --- ---]]
+
+    "Rook cannot check diagonally"
+    false [[-BR --- ---]
+           [--- --- ---]
+           [--- --- -WK]]
+
+    ))
+
+(deftest check?-castle-test
+  (are [description expected board]
+    (testing description
+      (= expected (->> board
+                       (->proposed-move -WK)
+                       (chess/valid-castle?))))
+
+    "Can castle when not threatened"
+    true  [[--- -BP --- ---]
+           [--- --- --- ---]
+           [-WK --- x-- -WR]]
+
+    "Cannot castle through check"
+    false [[--- -BR --- ---]
+           [--- --- --- ---]
+           [-WK --- x-- -WR]]
+
+    "Cannot castle while in check"
+    false [[--- --- -BB ---]
+           [--- --- --- ---]
+           [-WK --- x-- -WR]]
+    ))
