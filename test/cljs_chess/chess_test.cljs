@@ -24,46 +24,6 @@
     (with-level :warn
       (f))))
 
-(deftest lookup-piece-test
-  (are [expected piece]
-    (is (= expected
-           (chess/lookup-piece {[0 0] BLACK-ROOK}
-                               piece)))
-
-    [[0 0] BLACK-ROOK] BLACK-ROOK
-    nil                {:nonexistant "piece"}))
-
-(deftest lookup-loc-test
-  (are [expected loc]
-    (is (= expected
-           (chess/lookup-loc {[0 0] BLACK-ROOK}
-                             loc)))
-
-    BLACK-ROOK [0 0]
-    nil        [1 1]))
-
-(deftest empty-square?-test
-  (are [expected loc]
-    (is (= expected
-           (chess/empty-square? {[0 0] BLACK-ROOK}
-                                loc)))
-
-    false [0 0]
-    true  [1 1]))
-
-(deftest blockers-test
-  (is (= #{BLACK-KNIGHT BLACK-PAWN}
-         (chess/blockers {[0 0] BLACK-ROOK
-                          [0 1] BLACK-KNIGHT
-                          [0 2] BLACK-PAWN}
-                         [[0 1] [0 2]])))
-  (is (= #{}
-         (chess/blockers {[0 0] BLACK-ROOK
-                          [0 1] BLACK-KNIGHT
-                          [0 2] BLACK-PAWN}
-                         [[1 0] [2 0]]))))
-
-
 (def movement-spec
   (for-all [board cgen/gen-board
             :let  [[from piece] (first board)]
@@ -111,29 +71,6 @@
 (deftest movement-to-empty-space-test
   (tc/quick-check 100 movement-to-empty-space-spec))
 
-(deftest valid-endpoint?-test
-  (are [description expected board]
-    (testing description
-      (= expected (->> board
-                       (->proposed-move -BQ)
-                       (chess/valid-endpoint?))))
-
-    "Target space has piece owned by other player"
-    true [[-BQ xWP ---]
-          [--- --- ---]
-          [--- --- ---]]
-
-    "Target space empty"
-    true [[-BQ x-- ---]
-          [--- --- ---]
-          [--- --- ---]]
-
-    "Target space has piece owned by same player"
-    false [[-BQ xBP ---]
-           [--- --- ---]
-           [--- --- ---]]
-    ))
-
 (deftest valid-knight-movement?-test
   (are [description expected board]
     (testing description
@@ -155,29 +92,6 @@
     false [[-BN --- ---]
            [--- x-- ---]
            [--- --- ---]]))
-
-(deftest slide-blocked?-test
-  (are [description expected mover board]
-    (testing description
-      (= expected (->> board
-                       (->proposed-move mover)
-                       (chess/slide-blocked?))))
-
-    "Queen move blocked by Knight"
-    true  -BQ [[-BQ --- ---]
-               [--- -BN ---]
-               [--- --- x--]]
-
-    "Queen move unblocked - no other pieces on board"
-    false -BQ [[-BQ --- ---]
-               [--- --- ---]
-               [--- --- x--]]
-
-    "Queen move unblocked by Knight"
-    false -BQ [[-BQ --- ---]
-               [--- --- -BN]
-               [--- --- x--]]
-    ))
 
 (deftest valid-queen-movement?-test
   (are [description expected board]

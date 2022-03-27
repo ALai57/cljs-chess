@@ -23,6 +23,6 @@
   [board]
   (map second board))
 
-(def empty-square?
+(defn empty-square?
   [board loc]
   (nil? (find-loc board loc)))

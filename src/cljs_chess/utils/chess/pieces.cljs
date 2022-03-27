@@ -19,4 +19,4 @@
 
 (defn king?
   [piece]
-  (= "king" (piece-type piece)))
+  (= "king" (type piece)))

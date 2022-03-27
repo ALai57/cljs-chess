@@ -84,9 +84,6 @@
 ;; Helpers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def truthy? identity)
-
-;; Pieces
 (defn next-player
   [player]
   (get TURN-ORDER player))
@@ -227,30 +224,21 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Turn policy
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn belongs-to-active-player?
-  [{:keys [state new-loc piece] :as proposed-move}]
-  (if-let [active-player (:active-player state)]
-    (= (chess-pieces/owner piece) active-player)
-    true))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Handlers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; TODO: Castling, check?, pawn promotion, en-passant, turn color indicator
 (defn valid-movement?
   [{:keys [piece] :as proposed-move}]
-  (let [proposed-move-valid? (get MOVEMENT-POLICY (chess-pieces/type piece))]
-    (proposed-move-valid? proposed-move)))
+  (let [proposed-movement-valid? (get MOVEMENT-POLICY (chess-pieces/type piece))]
+    (proposed-movement-valid? proposed-move)))
 
 (defn allowed-action?
   [state new-loc piece monitor]
   (let [proposed-move {:state   state
                        :piece   piece
                        :new-loc new-loc}
-        pred          (every-pred belongs-to-active-player?
+        pred          (every-pred proposed-moves/belongs-to-active-player?
                                   valid-movement?)]
     ;;(infof "Checking if %s can be moved from %s to %s" piece old-loc new-loc)
     (pred proposed-move)))
@@ -280,5 +268,4 @@
   (->> state
        (chess-board/get-pieces)
        (map (partial threatened? state piece))
-       (some truthy?)
-       (boolean)))
+       (some boolean)))

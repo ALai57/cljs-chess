@@ -1,8 +1,8 @@
 (ns cljs-chess.utils.chess.proposed-moves
-  (:require [cljs-chess.utils.chess.pieces :as chess-pieces]
-            [cljs-chess.utils.chess.board :as chess-board]
-            [taoensso.timbre :refer-macros [infof]]
-            [cljs-chess.utils.geometry :as geom]))
+  (:require [cljs-chess.utils.chess.board :as chess-board]
+            [cljs-chess.utils.chess.pieces :as chess-pieces]
+            [cljs-chess.utils.geometry :as geom]
+            [taoensso.timbre :refer-macros [infof]]))
 
 (defn valid-endpoint?
   [{:keys [state piece new-loc] :as proposed-move}]
@@ -37,3 +37,10 @@
            (and (valid-geom? old-loc new-loc)
                 (not (slide-blocked? proposed-move))
                 (valid-endpoint? proposed-move)))))
+
+
+(defn belongs-to-active-player?
+  [{:keys [state new-loc piece] :as proposed-move}]
+  (if-let [active-player (:active-player state)]
+    (= (chess-pieces/owner piece) active-player)
+    true))
