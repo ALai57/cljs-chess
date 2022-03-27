@@ -51,3 +51,7 @@
   [old-loc new-loc]
   (= [1 2]
      (sort (map (comp abs -) old-loc new-loc))))
+
+(defn single-square-move?
+  [old-loc new-loc]
+  (= 1 (distance old-loc new-loc)))

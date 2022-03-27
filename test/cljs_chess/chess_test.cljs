@@ -15,6 +15,7 @@
             [clojure.test.check.generators :as gen]
             [clojure.test.check.properties :as prop]
             [com.gfredericks.test.chuck.properties :refer-macros [for-all]]
+            [matcher-combinators.test :refer-macros [match?]]
             [taoensso.timbre :refer-macros [with-level]]))
 
 (use-fixtures
@@ -74,7 +75,7 @@
                           :new-loc to})
       (and (is (nil? (get @state from))
                "`From` space should be vacated after moving")
-           (is (= piece (get @state to))
+           (is (match? piece (get @state to))
                "`To` space should have the new piece after moving")))))
 
 (deftest movement-test
@@ -246,8 +247,8 @@
            [--- x-- ---]
            [--- --- ---]]
 
-    "Since it's not the first move, Pawn cannot move 2 spaces forward"
-    false [[--- -BP ---]
+    "Since its the first move, Pawn can move 2 spaces forward"
+    true  [[--- -BP ---]
            [--- --- ---]
            [--- x-- ---]]
     ))
@@ -354,25 +355,25 @@
 
     ))
 
-(deftest check?-castle-test
-  (are [description expected board]
-    (testing description
-      (= expected (->> board
-                       (->proposed-move -WK)
-                       (chess/valid-castle?))))
+#_(deftest check?-castle-test
+    (are [description expected board]
+      (testing description
+        (= expected (->> board
+                         (->proposed-move -WK)
+                         (chess/valid-castle?))))
 
-    "Can castle when not threatened"
-    true  [[--- -BP --- ---]
-           [--- --- --- ---]
-           [-WK --- x-- -WR]]
+      "Can castle when not threatened"
+      true  [[--- -BP --- ---]
+             [--- --- --- ---]
+             [-WK --- x-- -WR]]
 
-    "Cannot castle through check"
-    false [[--- -BR --- ---]
-           [--- --- --- ---]
-           [-WK --- x-- -WR]]
+      "Cannot castle through check"
+      false [[--- -BR --- ---]
+             [--- --- --- ---]
+             [-WK --- x-- -WR]]
 
-    "Cannot castle while in check"
-    false [[--- --- -BB ---]
-           [--- --- --- ---]
-           [-WK --- x-- -WR]]
-    ))
+      "Cannot castle while in check"
+      false [[--- --- -BB ---]
+             [--- --- --- ---]
+             [-WK --- x-- -WR]]
+      ))

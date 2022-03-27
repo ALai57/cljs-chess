@@ -21,7 +21,7 @@
                                      (assoc
                                       :state     @state
                                       :item-type chess-piece/chess-piece
-                                      :can-drop? chess/can-drop?
+                                      :can-drop? chess/allowed-action?
                                       :on-drop   (partial chess/on-drop-handler state)))])
 
 ;; A "Templating" example, as an alternative to the JavaScript bind syntax explained in the Storybook docs

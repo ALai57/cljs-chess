@@ -1,7 +1,10 @@
 (ns cljs-chess.chess
   (:require [cljs-chess.utils.geometry :as geom]
+            [cljs-chess.utils.chess.pieces :as chess-pieces]
+            [cljs-chess.utils.chess.proposed-moves :as proposed-moves]
             [cljs-chess.utils.generic :refer [some-fn* update-when]]
-            [taoensso.timbre :refer-macros [infof]]))
+            [taoensso.timbre :refer-macros [infof]]
+            [cljs-chess.utils.chess.board :as chess-board]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -83,64 +86,19 @@
 
 (def truthy? identity)
 
-;; State
-(defn lookup-piece
-  [state piece]
-  (first (filter (comp (partial = piece)
-                       second)
-                 state)))
-
-(def where-am-i (comp first lookup-piece))
-
-(defn lookup-loc
-  [state loc]
-  (get state loc))
-
-(def empty-square?
-  (comp nil? lookup-loc))
-
-(defn blockers
-  [state pts]
-  (reduce (fn [acc pt]
-            (if-let [blocker (lookup-loc state pt)]
-              (conj acc blocker)
-              acc))
-          #{}
-          pts))
-
 ;; Pieces
-(defn piece-type
-  [piece]
-  (:piece piece))
-
-(defn piece-owner
-  [piece]
-  (:owner piece))
-
-(defn moved?
-  [piece]
-  (:moved? piece))
-
-(defn first-move?
-  [piece]
-  (boolean (and piece (not (moved? piece)))))
-
-(defn king?
-  [piece]
-  (= "king" (piece-type piece)))
-
 (defn next-player
-  [x]
-  (get TURN-ORDER x))
+  [player]
+  (get TURN-ORDER player))
 
 (defn move-piece!
   [{:keys [state piece new-loc] :as proposed-move}]
-  (let [[old-loc] (lookup-piece @state piece)]
+  (let [[old-loc] (chess-board/find-piece @state piece)]
     (infof "Moving %s from %s to %s" piece old-loc new-loc)
     (swap! state dissoc old-loc)
     (swap! state assoc
            new-loc        (assoc piece :moved? true)
-           :active-player (next-player (piece-owner piece)))
+           :active-player (next-player (chess-pieces/owner piece)))
     #_(cond
         (promotion? proposed-move) (promote-pawn! proposed-move)
         (castle? proposed-move)    (castle-rook! proposed-move))))
@@ -148,94 +106,59 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Movement policy
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn valid-endpoint?
-  [{:keys [state piece new-loc] :as proposed-move}]
-  (not= (piece-owner piece)
-        (piece-owner (lookup-loc state new-loc))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Jumping fns
-;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn valid-jump?
-  [valid-geom? {:keys [state piece new-loc] :as proposed-move}]
-  (let [[old-loc] (lookup-piece state piece)]
-    (and (valid-geom? old-loc new-loc)
-         (valid-endpoint? proposed-move))))
 
 (def valid-knight-movement?
-  (partial valid-jump? geom/L-movement?))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Sliding fns
-;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn slide-blocked?
-  [{:keys [state piece new-loc] :as proposed-move}]
-  (let [[old-loc] (lookup-piece state piece)]
-    (->> (geom/path-between old-loc new-loc)
-         (blockers state)
-         (seq)
-         (some?))))
-
-(defn valid-slide?
-  [valid-direction? {:keys [state piece new-loc] :as proposed-move}]
-  (true? (let [[old-loc] (lookup-piece state piece)]
-           (and (valid-direction? old-loc new-loc)
-                (not (slide-blocked? proposed-move))
-                (valid-endpoint? proposed-move)))))
-
-(def single-square-move?
-  (comp (partial = 1)
-        geom/distance))
+  (partial proposed-moves/valid-jump? geom/L-movement?))
 
 (def valid-king-movement?
-  (partial valid-slide? single-square-move?))
+  (partial proposed-moves/valid-slide? geom/single-square-move?))
 
 (def valid-bishop-movement?
-  (partial valid-slide? geom/diagonal?))
+  (partial proposed-moves/valid-slide? geom/diagonal?))
 
 (def valid-rook-movement?
-  (partial valid-slide? (some-fn* geom/horizontal?
-                                  geom/vertical?)))
+  (partial proposed-moves/valid-slide? (some-fn* geom/horizontal?
+                                                 geom/vertical?)))
 
 (def valid-queen-movement?
-  (partial valid-slide? (some-fn* geom/horizontal?
-                                  geom/vertical?
-                                  geom/diagonal?)))
+  (partial proposed-moves/valid-slide? (some-fn* geom/horizontal?
+                                                 geom/vertical?
+                                                 geom/diagonal?)))
 
 (defn valid-castle-movement?
   [{:keys [state piece new-loc] :as proposed-move}]
-  {:pre [(king? piece)]}
-  (let [delta (geom/delta new-loc (where-am-i state piece))]
+  {:pre [(chess-pieces/king? piece)]}
+  (let [delta (geom/delta new-loc (chess-board/where-am-i state piece))]
     (or (= [0  2] delta)
         (= [0 -2] delta))))
 
 (defn lookup-castling-rook
   [{:keys [state piece new-loc] :as proposed-move}]
-  {:pre [(king? piece)]}
-  #_(infof "%s %s" [(geom/delta new-loc (where-am-i state piece))
-                    (piece-owner piece)]
-           (lookup-loc state [7 7]))
-  (case [(geom/delta new-loc (where-am-i state piece))
-         (piece-owner piece)]
-    [TWO-SQUARES-LEFT  "white"] (lookup-loc state [7 0])
-    [TWO-SQUARES-RIGHT "white"] (lookup-loc state [7 7])
-    [TWO-SQUARES-LEFT  "black"] (lookup-loc state [0 0])
-    [TWO-SQUARES-RIGHT "black"] (lookup-loc state [0 7])
+  {:pre [(chess-pieces/king? piece)]}
+  #_(infof "%s %s" [(geom/delta new-loc (chess-board/where-am-i state piece))
+                    (chess-pieces/owner piece)]
+           (chess-board/find-loc state [7 7]))
+  (case [(geom/delta new-loc (chess-board/where-am-i state piece))
+         (chess-pieces/owner piece)]
+    [TWO-SQUARES-LEFT  "white"] (chess-board/find-loc state [7 0])
+    [TWO-SQUARES-RIGHT "white"] (chess-board/find-loc state [7 7])
+    [TWO-SQUARES-LEFT  "black"] (chess-board/find-loc state [0 0])
+    [TWO-SQUARES-RIGHT "black"] (chess-board/find-loc state [0 7])
     nil))
 
 (defn castling-blocked?
   [{:keys [state piece new-loc] :as proposed-move}]
-  (let [[old-loc] (lookup-piece state piece)]
+  (let [[old-loc] (chess-board/find-piece state piece)]
     (->> (geom/path-between old-loc new-loc)
          (butlast)
-         (blockers state)
+         (chess-board/blockers state)
          (seq)
          (some?))))
 
 (defn castle-states
   [{:keys [state piece new-loc] :as proposed-move}]
-  {:pre [(king? piece)]}
-  (let [king-loc (where-am-i state piece)
+  {:pre [(chess-pieces/king? piece)]}
+  (let [king-loc (chess-board/where-am-i state piece)
         locs     (geom/path-between king-loc new-loc)]
     (map (fn [loc]
            (-> state
@@ -245,51 +168,50 @@
                  [new-loc
                   king-loc]))))
 
+(declare check?)
+
 (defn valid-castle?
   [{:keys [state piece new-loc] :as proposed-move}]
-  {:pre [(king? piece)]}
+  {:pre [(chess-pieces/king? piece)]}
   (let [king piece
         rook (lookup-castling-rook proposed-move)]
     #_(infof "Castling rook %s" rook)
     #_(infof "Valid-castle-movement? %s" (valid-castle-movement? proposed-move))
     #_(infof "First king movement? %s First Rook movement? %s"
-             (first-move? king)
-             (first-move? rook))
+             (chess-pieces/first-move? king)
+             (chess-pieces/first-move? rook))
     (and (valid-castle-movement? proposed-move)
-         (first-move? king)
-         (first-move? rook)
+         (chess-pieces/first-move? king)
+         (chess-pieces/first-move? rook)
          (not (castling-blocked? proposed-move))
-         #_(not-any? check? (castle-states proposed-move)))))
+         (not-any? check? (castle-states proposed-move)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Pawn fns
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn end-in-enemy-space?
-  "Does the move end in a space with an enemy?"
+(defn valid-pawn-taking-movement?
   [{:keys [state piece new-loc] :as proposed-move}]
-  (when-let [owner (piece-owner (get state new-loc))]
-    (not= (piece-owner piece)
-          owner)))
+  (let [[old-loc] (chess-board/find-piece state piece)
+        step      (get PAWN-DIRECTION (chess-pieces/owner piece))
+        d         (map - new-loc old-loc step)]
+    (or (= [0  1] d)
+        (= [0 -1] d))))
 
 (defn valid-pawn-take?
   [{:keys [state piece new-loc] :as proposed-move}]
-  (let [[old-loc] (lookup-piece state piece)
-        step      (get PAWN-DIRECTION (piece-owner piece))
-        d         (map - new-loc old-loc step)]
-    (and (or (= [0  1] d)
-             (= [0 -1] d))
-         (end-in-enemy-space? proposed-move))))
+  (and (valid-pawn-taking-movement? proposed-move)
+       (proposed-moves/end-in-enemy-space? proposed-move)))
 
 (defn valid-pawn-movement?
   [{:keys [state piece new-loc] :as proposed-move}]
-  (true? (let [[old-loc] (lookup-piece state piece)
-               step      (get PAWN-DIRECTION (piece-owner piece))]
+  (true? (let [[old-loc] (chess-board/find-piece state piece)
+               step      (get PAWN-DIRECTION (chess-pieces/owner piece))]
            (or (and (= new-loc (map + old-loc step))
-                    (empty-square? state new-loc))
+                    (chess-board/empty-square? state new-loc))
                (and (= new-loc (map + old-loc step step))
-                    (empty-square? state new-loc)
-                    (first-move? piece)
-                    (not (slide-blocked? proposed-move)))))))
+                    (chess-board/empty-square? state new-loc)
+                    (chess-pieces/first-move? piece)
+                    (not (proposed-moves/slide-blocked? proposed-move)))))))
 
 (def MOVEMENT-POLICY
   {"rook"   valid-rook-movement?
@@ -307,31 +229,31 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Turn policy
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn allowed-owner?
-  [{:keys [active-player]} piece]
-  ;;(infof "Attempting to move: %s Current active player: %s" piece active-player)
-  (if active-player
-    (= (piece-owner piece) active-player)
+(defn belongs-to-active-player?
+  [{:keys [state new-loc piece] :as proposed-move}]
+  (if-let [active-player (:active-player state)]
+    (= (chess-pieces/owner piece) active-player)
     true))
-
-(def turn-policy
-  allowed-owner?)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Handlers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; TODO: Castling, pawn promotion, en-passant, check?, turn color indicator
-;;
-(defn can-drop?
+;; TODO: Castling, check?, pawn promotion, en-passant, turn color indicator
+(defn valid-movement?
+  [{:keys [piece] :as proposed-move}]
+  (let [proposed-move-valid? (get MOVEMENT-POLICY (chess-pieces/type piece))]
+    (proposed-move-valid? proposed-move)))
+
+(defn allowed-action?
   [state new-loc piece monitor]
-  (let [movement-policy (get MOVEMENT-POLICY (piece-type piece))]
+  (let [proposed-move {:state   state
+                       :piece   piece
+                       :new-loc new-loc}
+        pred          (every-pred belongs-to-active-player?
+                                  valid-movement?)]
     ;;(infof "Checking if %s can be moved from %s to %s" piece old-loc new-loc)
-    ;;         Call this "proposed-move"
-    (and (turn-policy state piece)
-         (movement-policy {:state   state
-                           :piece   piece
-                           :new-loc new-loc}))))
+    (pred proposed-move)))
 
 (defn on-drop-handler
   "state-ref is a reference to state (to get the value, must deref)"
@@ -348,17 +270,15 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn threatened?
   [state target-piece aggressor-piece]
-  (can-drop? state (where-am-i state target-piece) aggressor-piece nil))
-
-(defn get-pieces
-  [state]
-  (map second state))
+  (valid-movement? {:state   state
+                    :piece   aggressor-piece
+                    :new-loc (chess-board/where-am-i state target-piece)}))
 
 (defn check?
   [piece state]
-  {:pre [(king? piece)]}
+  {:pre [(chess-pieces/king? piece)]}
   (->> state
-       (get-pieces)
+       (chess-board/get-pieces)
        (map (partial threatened? state piece))
        (some truthy?)
        (boolean)))
