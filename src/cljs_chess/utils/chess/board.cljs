@@ -26,3 +26,5 @@
 (defn empty-square?
   [board loc]
   (nil? (find-loc board loc)))
+
+(def where-am-i (comp first find-piece))

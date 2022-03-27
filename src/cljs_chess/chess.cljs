@@ -268,4 +268,5 @@
   (->> state
        (chess-board/get-pieces)
        (map (partial threatened? state piece))
-       (some boolean)))
+       (some identity)
+       (boolean)))
