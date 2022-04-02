@@ -51,19 +51,21 @@
 
 (defn valid-castle-movement?
   [{:keys [state piece new-loc] :as proposed-move}]
-  {:pre [(chess-pieces/king? piece)]}
-  (let [delta (geom/delta new-loc (chess-board/where-am-i state piece))]
+  {:pre [(chess-pieces/king? (proposed-moves/from-piece proposed-move))]}
+  (let [delta (geom/delta (proposed-moves/to-location proposed-move)
+                          (proposed-moves/from-location proposed-move))]
     (or (= [0  2] delta)
         (= [0 -2] delta))))
 
 (defn lookup-castling-rook
-  [{:keys [state piece new-loc] :as proposed-move}]
-  {:pre [(chess-pieces/king? piece)]}
+  [{:keys [state] :as proposed-move}]
+  {:pre [(chess-pieces/king? (proposed-moves/from-piece proposed-move))]}
   #_(infof "%s %s" [(geom/delta new-loc (chess-board/where-am-i state piece))
                     (chess-pieces/owner piece)]
            (chess-board/find-loc state [7 7]))
-  (case [(geom/delta new-loc (chess-board/where-am-i state piece))
-         (chess-pieces/owner piece)]
+  (case [(geom/delta (proposed-moves/to-location proposed-move)
+                     (proposed-moves/from-location proposed-move))
+         (chess-pieces/owner (proposed-moves/from-piece proposed-move))]
     [TWO-SQUARES-LEFT  "white"] (chess-board/find-loc state [7 0])
     [TWO-SQUARES-RIGHT "white"] (chess-board/find-loc state [7 7])
     [TWO-SQUARES-LEFT  "black"] (chess-board/find-loc state [0 0])
@@ -72,25 +74,27 @@
 
 (defn castling-blocked?
   [{:keys [state piece new-loc] :as proposed-move}]
-  (let [[old-loc] (chess-board/find-piece state piece)]
-    (->> (geom/path-between old-loc new-loc)
-         (butlast)
-         (chess-board/blockers state)
-         (seq)
-         (some?))))
+  (->> (geom/path-between (proposed-moves/from-location proposed-move)
+                          (proposed-moves/to-location proposed-move))
+       (butlast)
+       (chess-board/blockers (proposed-moves/get-board proposed-move))
+       (seq)
+       (some?)))
 
 (defn castle-states
   [{:keys [state piece new-loc] :as proposed-move}]
-  {:pre [(chess-pieces/king? piece)]}
-  (let [king-loc (chess-board/where-am-i state piece)
-        locs     (geom/path-between king-loc new-loc)]
+  {:pre [(chess-pieces/king? (proposed-moves/from-piece proposed-move))]}
+  (let [from-loc   (proposed-moves/from-location proposed-move)
+        from-piece (proposed-moves/from-piece proposed-move)
+        to-loc     (proposed-moves/to-location proposed-move)
+        locs       (geom/path-between from-loc to-loc)]
     (map (fn [loc]
            (-> state
-               (dissoc king-loc)
-               (assoc loc piece)))
+               (dissoc from-loc)
+               (assoc loc from-piece)))
          (concat locs
-                 [new-loc
-                  king-loc]))))
+                 [to-loc
+                  from-loc]))))
 
 (declare check?)
 
@@ -156,8 +160,10 @@
 
 ;; TODO: Castling, check?, pawn promotion, en-passant, turn color indicator
 (defn valid-movement?
-  [{:keys [piece] :as proposed-move}]
-  (let [proposed-movement-valid? (get MOVEMENT-POLICY (chess-pieces/type piece))]
+  [proposed-move]
+  (let [proposed-movement-valid? (get MOVEMENT-POLICY
+                                      (chess-pieces/type
+                                       (proposed-moves/from-piece proposed-move)))]
     (proposed-movement-valid? proposed-move)))
 
 (defn allowed-action?
