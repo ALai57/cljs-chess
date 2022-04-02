@@ -39,19 +39,19 @@
 ;; Logic
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn end-in-friendly-space?
-  [{:keys [state piece new-loc] :as proposed-move}]
+  [proposed-move]
   (= (chess-pieces/owner (from-piece proposed-move))
      (chess-pieces/owner (to-piece proposed-move))))
 
 (defn end-in-enemy-space?
   "Does the move end in a space with an enemy?"
-  [{:keys [state piece new-loc] :as proposed-move}]
+  [proposed-move]
   (when (to-piece proposed-move)
     (not= (chess-pieces/owner (from-piece proposed-move))
           (chess-pieces/owner (to-piece proposed-move)))))
 
 (defn slide-blocked?
-  [{:keys [state new-loc] :as proposed-move}]
+  [proposed-move]
   (let [board (get-board proposed-move)
         piece (from-piece proposed-move)]
     (->> (geom/path-between (from-location proposed-move)
@@ -61,13 +61,13 @@
          (some?))))
 
 (defn valid-jump?
-  [valid-geom? {:keys [state piece new-loc] :as proposed-move}]
+  [valid-geom? proposed-move]
   (and (valid-geom? (from-location proposed-move)
                     (to-location proposed-move))
        (not (end-in-friendly-space? proposed-move))))
 
 (defn valid-slide?
-  [valid-geom? {:keys [state piece new-loc] :as proposed-move}]
+  [valid-geom? proposed-move]
   (true? (and (valid-geom? (from-location proposed-move)
                            (to-location proposed-move))
               (not (slide-blocked? proposed-move))
@@ -75,7 +75,7 @@
 
 
 (defn belongs-to-active-player?
-  [{:keys [state new-loc piece] :as proposed-move}]
+  [proposed-move]
   (if-let [active-player (:active-player state)]
     (= (chess-pieces/owner (from-piece proposed-move)) active-player)
     true))
