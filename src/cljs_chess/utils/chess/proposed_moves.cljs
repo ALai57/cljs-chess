@@ -4,25 +4,45 @@
             [cljs-chess.utils.geometry :as geom]
             [taoensso.timbre :refer-macros [infof]]))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Helpers
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn get-state
+  [proposed-move]
+  (:state proposed-move))
+
+(defn get-board
+  [proposed-move]
+  (identity (get-state proposed-move)))
+
+(defn target-space
+  [proposed-move]
+  (-> proposed-move
+      (get-board)
+      (chess-board/find-loc new-loc)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Logic
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn valid-endpoint?
   [{:keys [state piece new-loc] :as proposed-move}]
   (not= (chess-pieces/owner piece)
-        (chess-pieces/owner (chess-board/find-loc state new-loc))))
+        (chess-pieces/owner (target-space proposed-move))))
 
 (defn end-in-enemy-space?
   "Does the move end in a space with an enemy?"
   [{:keys [state piece new-loc] :as proposed-move}]
-  (when-let [owner (chess-pieces/owner (get state new-loc))]
+  (when-let [owner (chess-pieces/owner (target-space proposed-move))]
     (not= (chess-pieces/owner piece)
           owner)))
 
 (defn slide-blocked?
   [{:keys [state piece new-loc] :as proposed-move}]
-  (let [[old-loc] (chess-board/find-piece state piece)]
-    (->> (geom/path-between old-loc new-loc)
-         (chess-board/blockers state)
-         (seq)
-         (some?))))
+  (->>  new-loc
+        (geom/path-between (chess-board/find-piece-location state piece))
+        (chess-board/blockers state)
+        (seq)
+        (some?)))
 
 
 (defn valid-jump?
