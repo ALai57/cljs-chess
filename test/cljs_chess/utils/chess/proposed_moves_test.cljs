@@ -11,25 +11,25 @@
 
             [cljs.test :as t :refer-macros [are deftest is use-fixtures testing]]))
 
-(deftest valid-endpoint?-test
+(deftest end-in-friendly-space?-test
   (are [description expected board]
     (testing description
       (= expected (->> board
                        (->proposed-move -BQ)
-                       (proposed-moves/valid-endpoint?))))
+                       (proposed-moves/end-in-friendly-space?))))
 
     "Target space has piece owned by other player"
-    true [[-BQ xWP ---]
-          [--- --- ---]
-          [--- --- ---]]
+    false [[-BQ xWP ---]
+           [--- --- ---]
+           [--- --- ---]]
 
     "Target space empty"
-    true [[-BQ x-- ---]
-          [--- --- ---]
-          [--- --- ---]]
+    false [[-BQ x-- ---]
+           [--- --- ---]
+           [--- --- ---]]
 
     "Target space has piece owned by same player"
-    false [[-BQ xBP ---]
+    true  [[-BQ xBP ---]
            [--- --- ---]
            [--- --- ---]]
     ))

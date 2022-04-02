@@ -38,10 +38,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Logic
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn valid-endpoint?
+(defn end-in-friendly-space?
   [{:keys [state piece new-loc] :as proposed-move}]
-  (not= (chess-pieces/owner (from-piece proposed-move))
-        (chess-pieces/owner (to-piece proposed-move))))
+  (= (chess-pieces/owner (from-piece proposed-move))
+     (chess-pieces/owner (to-piece proposed-move))))
 
 (defn end-in-enemy-space?
   "Does the move end in a space with an enemy?"
@@ -62,20 +62,20 @@
 
 (defn valid-jump?
   [valid-geom? {:keys [state piece new-loc] :as proposed-move}]
-  (let [[old-loc] (chess-board/find-piece state piece)]
-    (and (valid-geom? old-loc new-loc)
-         (valid-endpoint? proposed-move))))
+  (and (valid-geom? (from-location proposed-move)
+                    (to-location proposed-move))
+       (not (end-in-friendly-space? proposed-move))))
 
 (defn valid-slide?
   [valid-geom? {:keys [state piece new-loc] :as proposed-move}]
-  (true? (let [[old-loc] (chess-board/find-piece state piece)]
-           (and (valid-geom? old-loc new-loc)
-                (not (slide-blocked? proposed-move))
-                (valid-endpoint? proposed-move)))))
+  (true? (and (valid-geom? (from-location proposed-move)
+                           (to-location proposed-move))
+              (not (slide-blocked? proposed-move))
+              (not (end-in-friendly-space? proposed-move)))))
 
 
 (defn belongs-to-active-player?
   [{:keys [state new-loc piece] :as proposed-move}]
   (if-let [active-player (:active-player state)]
-    (= (chess-pieces/owner piece) active-player)
+    (= (chess-pieces/owner (from-piece proposed-move)) active-player)
     true))
