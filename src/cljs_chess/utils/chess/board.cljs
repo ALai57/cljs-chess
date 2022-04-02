@@ -8,9 +8,14 @@
 
 (defn find-piece-location
   [board piece]
-  (ffirst (find-piece board-piece)))
+  (let [[loc piece] (find-piece board piece)]
+    loc))
 
 (defn find-loc
+  [board loc]
+  (get board loc))
+
+(defn get-occupant
   [board loc]
   (get board loc))
 

@@ -1,8 +1,7 @@
 (ns cljs-chess.stories.components.drag-and-drop-board-stories
   (:require [cljs-chess.components.drag-and-drop-board :as dnd-board]
             [cljs-chess.components.chess-piece :as chess-piece]
-            [cljs-chess.components.chess-piece :as chess-piece]
-            [cljs-chess.chess :as chess :refer [BLACK-ROOK]]
+            [cljs-chess.chess-constants :refer [BLACK-ROOK]]
             [cljs-chess.stories.helper :as helper]
             [reagent.core :as reagent]))
 

@@ -11,39 +11,54 @@
   [proposed-move]
   (:state proposed-move))
 
+(defn to-piece
+  [proposed-move]
+  (let [board        (get-board proposed-move)
+        target-space (to-location proposed-move)]
+    (chess-board/get-occupant board target-space)))
+
+(defn to-location
+  [proposed-move]
+  (:new-loc proposed-move))
+
+(defn from-piece
+  [proposed-move]
+  (:piece proposed-move))
+
+(defn from-location
+  [proposed-move]
+  (chess-board/find-piece-location (get-board proposed-move)
+                                   (from-piece proposed-move)))
+
 (defn get-board
   [proposed-move]
   (identity (get-state proposed-move)))
 
-(defn target-space
-  [proposed-move]
-  (-> proposed-move
-      (get-board)
-      (chess-board/find-loc new-loc)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Logic
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn valid-endpoint?
   [{:keys [state piece new-loc] :as proposed-move}]
-  (not= (chess-pieces/owner piece)
-        (chess-pieces/owner (target-space proposed-move))))
+  (not= (chess-pieces/owner (from-piece proposed-move))
+        (chess-pieces/owner (to-piece proposed-move))))
 
 (defn end-in-enemy-space?
   "Does the move end in a space with an enemy?"
   [{:keys [state piece new-loc] :as proposed-move}]
-  (when-let [owner (chess-pieces/owner (target-space proposed-move))]
-    (not= (chess-pieces/owner piece)
-          owner)))
+  (when (to-piece proposed-move)
+    (not= (chess-pieces/owner (from-piece proposed-move))
+          (chess-pieces/owner (to-piece proposed-move)))))
 
 (defn slide-blocked?
-  [{:keys [state piece new-loc] :as proposed-move}]
-  (->>  new-loc
-        (geom/path-between (chess-board/find-piece-location state piece))
-        (chess-board/blockers state)
-        (seq)
-        (some?)))
-
+  [{:keys [state new-loc] :as proposed-move}]
+  (let [board (get-board proposed-move)
+        piece (from-piece proposed-move)]
+    (->> (geom/path-between (from-location proposed-move)
+                            (to-location proposed-move))
+         (chess-board/blockers board)
+         (seq)
+         (some?))))
 
 (defn valid-jump?
   [valid-geom? {:keys [state piece new-loc] :as proposed-move}]
