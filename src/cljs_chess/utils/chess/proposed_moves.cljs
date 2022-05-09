@@ -11,11 +11,9 @@
   [proposed-move]
   (:state proposed-move))
 
-(defn to-piece
+(defn get-board
   [proposed-move]
-  (let [board        (get-board proposed-move)
-        target-space (to-location proposed-move)]
-    (chess-board/get-occupant board target-space)))
+  (identity (get-state proposed-move)))
 
 (defn to-location
   [proposed-move]
@@ -25,15 +23,16 @@
   [proposed-move]
   (:piece proposed-move))
 
+(defn to-piece
+  [proposed-move]
+  (let [board        (get-board proposed-move)
+        target-space (to-location proposed-move)]
+    (chess-board/get-occupant board target-space)))
+
 (defn from-location
   [proposed-move]
   (chess-board/find-piece-location (get-board proposed-move)
-                                   (from-piece proposed-move)))
-
-(defn get-board
-  [proposed-move]
-  (identity (get-state proposed-move)))
-
+    (from-piece proposed-move)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Logic
@@ -76,6 +75,6 @@
 
 (defn belongs-to-active-player?
   [proposed-move]
-  (if-let [active-player (:active-player state)]
+  (if-let [active-player (:active-player (get-state proposed-move))]
     (= (chess-pieces/owner (from-piece proposed-move)) active-player)
     true))
