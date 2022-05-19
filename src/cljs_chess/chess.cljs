@@ -17,8 +17,11 @@
   (get TURN-ORDER player))
 
 (defn move-piece!
-  [state-ref {:keys [state piece new-loc] :as proposed-move}]
-  (let [[old-loc] (chess-board/find-piece (proposed-moves/get-board proposed-move) piece)]
+  [state-ref proposed-move]
+  (let [piece   (proposed-moves/from-piece proposed-move)
+        new-loc (proposed-moves/to-location proposed-move)
+        old-loc (chess-board/find-piece-location (proposed-moves/get-board proposed-move)
+                                                 piece)]
     (infof "Moving %s from %s to %s" piece old-loc new-loc)
     (swap! state-ref update-in [:board] dissoc old-loc)
     (swap! state-ref assoc-in [:board new-loc] (assoc piece :moved? true))
@@ -60,9 +63,6 @@
 (defn lookup-castling-rook
   [proposed-move]
   {:pre [(chess-pieces/king? (proposed-moves/from-piece proposed-move))]}
-  #_(infof "%s %s" [(geom/delta new-loc (chess-board/where-am-i state piece))
-                    (chess-pieces/owner piece)]
-           (chess-board/find-loc state [7 7]))
   (let [board (proposed-moves/get-board proposed-move)]
     (case [(geom/delta (proposed-moves/to-location proposed-move)
                        (proposed-moves/from-location proposed-move))
@@ -101,9 +101,9 @@
 (declare check?)
 
 (defn valid-castle?
-  [{:keys [state piece new-loc] :as proposed-move}]
-  {:pre [(chess-pieces/king? piece)]}
-  (let [king piece
+  [proposed-move]
+  {:pre [(chess-pieces/king? (proposed-moves/from-piece proposed-move))]}
+  (let [king (proposed-moves/from-piece proposed-move)
         rook (lookup-castling-rook proposed-move)]
     #_(infof "Castling rook %s" rook)
     #_(infof "Valid-castle-movement? %s" (valid-castle-movement? proposed-move))
@@ -130,7 +130,7 @@
         (= [0 -1] d))))
 
 (defn valid-pawn-take?
-  [{:keys [state piece new-loc] :as proposed-move}]
+  [proposed-move]
   (and (valid-pawn-taking-movement? proposed-move)
        (proposed-moves/end-in-enemy-space? proposed-move)))
 
@@ -164,7 +164,7 @@
 
 ;; TODO: Castling, check?, pawn promotion, en-passant, turn color indicator
 (defn -valid-movement?
-  [{:keys [state piece new-loc] :as proposed-move}]
+  [proposed-move]
   (let [proposed-movement-valid? (get MOVEMENT-POLICY
                                       (chess-pieces/type
                                        (proposed-moves/from-piece proposed-move)))]
@@ -205,7 +205,7 @@
   [target-piece board aggressor-piece]
   (valid-movement? {:state   {:board board}
                     :piece   aggressor-piece
-                    :new-loc (chess-board/where-am-i state target-piece)}))
+                    :new-loc (chess-board/find-piece-location board target-piece)}))
 
 (defn check?
   [piece board]
