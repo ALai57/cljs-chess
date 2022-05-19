@@ -13,13 +13,13 @@
                      :args      {:rows 8, :cols 8, :tag "example"}}))
 
 (def state
-  (reagent/atom {[0 0] (assoc BLACK-ROOK :id "1")
-                 [0 3] (assoc BLACK-KING :id "1")
-                 [0 7] (assoc BLACK-ROOK :id "2")
+  (reagent/atom {:board {[0 0] (assoc BLACK-ROOK :id "1")
+                         [0 3] (assoc BLACK-KING :id "1")
+                         [0 7] (assoc BLACK-ROOK :id "2")
 
-                 [7 3] (assoc WHITE-KING :id "1")
-                 [7 0] (assoc WHITE-ROOK :id "1")
-                 [7 7] (assoc WHITE-ROOK :id "2")}))
+                         [7 3] (assoc WHITE-KING :id "1")
+                         [7 0] (assoc WHITE-ROOK :id "1")
+                         [7 7] (assoc WHITE-ROOK :id "2")}}))
 
 (defn drag-and-drop-board
   "This must be present. Don't understand why, but it doesn't work without it"

@@ -18,7 +18,7 @@
    DEFAULT-DB))
 
 (def state
-  (reagent/atom STARTING-CHESS-BOARD))
+  (reagent/atom {:board STARTING-CHESS-BOARD}))
 
 (defn app []
   [:div

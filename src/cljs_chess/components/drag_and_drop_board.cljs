@@ -39,7 +39,7 @@
            (for [col  (range cols)
                  :let [id            (cell-key tag row col)
                        loc           [row col]
-                       current-piece (get state loc)]]
+                       current-piece (get-in state [:board loc])]]
              ^{:key id}
              [dnds/drag-and-drop-square
               {:id        id

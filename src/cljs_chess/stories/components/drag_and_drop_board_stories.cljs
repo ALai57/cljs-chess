@@ -12,7 +12,7 @@
                      :args      {:rows 3, :cols 3, :tag "example"}}))
 
 (def state
-  (reagent/atom {[0 0] BLACK-ROOK}))
+  (reagent/atom {:board {[0 0] BLACK-ROOK}}))
 
 (defn drag-and-drop-board
   "This must be present. Don't understand why, but it doesn't work without it"

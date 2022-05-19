@@ -2,7 +2,7 @@
   (:require [cljs-chess.utils.chess.board :as chess-board]
             [cljs-chess.utils.chess.pieces :as chess-pieces]
             [cljs-chess.utils.geometry :as geom]
-            [taoensso.timbre :refer-macros [infof]]))
+            [taoensso.timbre :refer-macros [debugf infof]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helpers
@@ -13,7 +13,7 @@
 
 (defn get-board
   [proposed-move]
-  (identity (get-state proposed-move)))
+  (:board (get-state proposed-move)))
 
 (defn to-location
   [proposed-move]
